@@ -1,0 +1,16 @@
+<meta>
+	<info author="kaiotellure" version="1.0" type="gamemode" />
+	<min_mta_version client="1.3.0-9.04431" />
+
+	<script src="/**/*.shared.lua" type="shared"/>
+	<script src="/**/*.server.lua" type="server"/>
+	<script src="/**/*.client.lua" type="client"/>
+
+	<file src="/**/*.png" />
+	<file src="/**/*.jpeg" />
+	<file src="/**/*.jpg" />
+	<file src="/**/*.ttf" />
+
+	<file src="assets/soundfx/*.mp3" />
+	<file src="assets/radios/*.mp3" download="false" />
+</meta>

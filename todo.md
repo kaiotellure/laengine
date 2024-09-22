@@ -1,0 +1,1 @@
+1. Check and debug what happens with radio sound amplification when doors are destroyed.
