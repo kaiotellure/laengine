@@ -11,7 +11,7 @@ local function spawn(player)
 	local posX, posY, posZ, rotX = unpack(random_spawn)
 	posX, posY = posX + math.random(-1, 1), posY + math.random(-1, 1)
 
-	spawnPlayer(player, posX, posY, posZ, rotX, 7, 0, 0, nil)
+	spawnPlayer(player, posX, posY, posZ, rotX, 1, 0, 0, nil)
 	fadeCamera(player, true)
 	setCameraTarget(player)
 end

@@ -21,7 +21,7 @@ addEventHandler("radio-sync", resourceRoot, function(target, index, uptime)
 	end)
 end)
 
-function init_radio_controls(vehicle, getCurrentName)
+function bindRadioControls(vehicle, getCurrentName)
 	local images = {}
 
 	for i, station in ipairs(RADIO_STATIONS) do
@@ -41,9 +41,17 @@ function init_radio_controls(vehicle, getCurrentName)
 	bindKey("r", "down", wheel.show)
 	bindKey("r", "up", wheel.hide)
 
+	local function onExplode()
+		wheel.stopRendering()
+		unbindKey("r", "down", wheel.show)
+		unbindKey("r", "up", wheel.hide)
+	end
+	addEventHandler("onClientVehicleExplode", vehicle, onExplode)
+
 	addEventHandler("onClientVehicleStartExit", vehicle, function(player)
 		if player == getLocalPlayer() then
-			wheel.unregister()
+			removeEventHandler("onClientVehicleExplode", vehicle, onExplode)
+			wheel.stopRendering()
 
 			unbindKey("r", "down", wheel.show)
 			unbindKey("r", "up", wheel.hide)
@@ -71,17 +79,18 @@ end
 
 addEventHandler("onClientVehicleEnter", root, function(player, seat)
 	if player == getLocalPlayer() then
-		local vehicle, sound = source, get_attached_3d_sound(vehicle)
+		local vehicle = source
+		local sound = get_attached_3d_sound(vehicle)
 
 		-- only front seats can control radio
 		if seat < 2 then
-			init_radio_controls(source, function()
+			bindRadioControls(source, function()
 				local sound = get_attached_3d_sound(vehicle)
 				if sound then return getElementData(sound, "station-name") end
 				return "DESLIGADO"
 			end)
 		end
-
+		
 		if sound then remove_sound_ambience_fx(sound) end
 		tip(3, 1) -- display radio tip notification, chance = 1/3
 	end

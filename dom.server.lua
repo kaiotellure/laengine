@@ -1,4 +1,4 @@
-function random_item_with_weight(choices)
+function randomItemWithWeight(choices)
     local totalWeight = 0
     for _, choice in pairs(choices) do
         totalWeight = totalWeight + choice.weight
@@ -7,29 +7,33 @@ function random_item_with_weight(choices)
     local randomWeight = math.random() * totalWeight
     local cumulativeWeight = 0
 
-    for item, choice in pairs(choices) do
+    for i, choice in pairs(choices) do
         cumulativeWeight = cumulativeWeight + choice.weight
         if randomWeight < cumulativeWeight then
-            return item, choice
+            return i, choice
         end
     end
 end
 
-local function generate_hability()
-	return random_item_with_weight(HABILITIES), 50 + math.random(50)
+-- higher numbers are the rarest ones
+-- you will want to use rarity 2-10
+function randomRare(max, rarity)
+    local rand = math.random()
+    return math.floor((1 - rand) ^ (rarity or 2) * max) + 1
 end
 
-function reroll_account_hability(account)
-	local hability, score = generate_hability()
+function setRandomGiftForAccount(account)
+	local hability, score = randomItemWithWeight(HABILITIES), 25 + randomRare(75, 3)
+
 	setAccountData(account, "engine.hability", hability)
 	setAccountData(account, "engine.hability.score", score)
 
 	print(space(getAccountName(account), "is now a", hability, score))
 end
 
-addEventHandler("onAccountCreate", root, reroll_account_hability)
+addEventHandler("onAccountCreate", root, setRandomGiftForAccount)
 
 addCommandHandler("dom", function(player)
 	local account = getPlayerAccount(player)
-	reroll_account_hability(account)
+	setRandomGiftForAccount(account)
 end)

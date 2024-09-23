@@ -1,10 +1,11 @@
 Autolab = {}
 Autolab.__index = Autolab
 
-local cars = {
-	{id = 587, time = 10, cost = 1}, -- Euros
-	{id = 415, time = 20, cost = 3}, -- Cheetah
-	{id = 411, time = 30, cost = 5} -- Infernus
+local CARS = {
+	{id = 587, time = 2, cost = 1}, -- Euros
+	{id = 400, time = 2, cost = 1}, -- Landstalker
+	{id = 561, time = 2, cost = 1}, -- Stratum
+	{id = 411, time = 2, cost = 1} -- Infernus
 }
 
 function Autolab.new(pos)
@@ -50,44 +51,69 @@ function Autolab:UpdateIronQuantityObjectsIndicator(padding)
 end
 
 function Autolab:DefineAreaSize(size)
-	self.area = createMarker(
+	self.areaMarker = createMarker(
 		self.pos.x, self.pos.y, self.pos.z-1,
-		"cylinder", size, 20, 0, 50, 10
+		"cylinder", size, 255, 0, 5, 25
 	)
 	
-	addEventHandler("onMarkerHit", self.area, function(element)
-		if getElementType(element) == "player" then
-			triggerClientEvent(
-				element, "text-notification", resourceRoot,
-				"autolab", space("Você está entrando no", self.name), 3
-			)
+	addEventHandler("onMarkerHit", self.areaMarker, function(element)
+		if getElementType(element) == "player" and self.cancelingJob and self.cancelingJob.owner == element then
+			killTimer(self.cancelingJob.timer)
+			self.cancelingJob = nil
+
+			triggerClientEvent(element, "delete-notification", resourceRoot, "autolab-job-canceling")
+		end
+	end)
+
+	addEventHandler("onMarkerLeave", self.areaMarker, function(element)
+		if getElementType(element) == "player" and self.currentJob and self.currentJob.owner == element then
+			local seconds = 25
+
+			local timer = setTimer(function()
+				assert(self.currentJob, "no current job to be canceled")
+				-- prevents canceling futures jobs from others players if the previous production
+				-- was faster than the canceling time spam, and another player started a new production
+				-- between the fast production job completion and this canceling job
+				if self.currentJob.owner ~= self.cancelingJob.owner then return end
+
+				killTimer(self.currentJob.timer)
+				destroyElement(self.currentJob.skeleton)
+
+				triggerClientEvent(element, "delete-notification", resourceRoot, "autolab-job")
+				self.currentJob.onCancel()
+
+				self.currentJob = nil
+				self.cancelingJob = nil
+			end, seconds*1000, 1)
+
+			self.cancelingJob = {timer = timer, owner = element}
+			triggerClientEvent(element, "job-notification", resourceRoot, "autolab-job-canceling", "Volte para o laboratório em 25s ou a produção do veículo irá ser cancelada.", seconds)
 		end
 	end)
 end
 
-function Autolab:ListKnownCarsAndGetWasteRatio(player)
-	local vehicle_list = {}
+function getPlayerScoreFor(player, job)
 	local account = getPlayerAccount(player)
 
-	local isProfessional = getAccountData(account, "engine.hability") == "auto_engineer"
-	local score = tonumber(getAccountData(account, "engine.hability.score"))
+	local hability = getAccountData(account, "engine.hability")
+	if hability ~= job then return 10 end
 
-	local each = 100/#cars
+	return tonumber(getAccountData(account, "engine.hability.score") or 10)
+end
 
-	for i, car in pairs(cars) do
-		if score > each*(i-1) then
-			local car_copy = table.shallow_copy(car)
-			car_copy.weight = i
-			table.insert(vehicle_list, car_copy)
+function listAvailableCarsForScore(score)
+	local availableCars = {}
+	local eachSpan = 100/#CARS
+
+	for i, car in pairs(CARS) do
+		if score > eachSpan * (i-1) then
+			local shallowCar = table.shallow_copy(car)
+			shallowCar.weight = i
+			table.insert(availableCars, shallowCar)
 		end
 	end
 
-	return vehicle_list, isProfessional and 1/score or 1
-end
-
-function Autolab:OutputVehicle(id)
-	local vehicle = createVehicle(id, self.releasePosition)
-	setElementHealth(vehicle, 10000)
+	return availableCars
 end
 
 function Autolab:IsReleaseSpotOccupied(radius)
@@ -116,23 +142,51 @@ function Autolab:CreateWorkingSpot(x, y, z)
 		local blockingVehicle = self:IsReleaseSpotOccupied(5)
 		if blockingVehicle then self.events.blocked(player, blockingVehicle) return end
 
-		local cars, waste = self:ListKnownCarsAndGetWasteRatio(player)
-		local _, choosen = random_item_with_weight(cars)
+		local score = getPlayerScoreFor(player, "auto_engineer")
+		local cars = listAvailableCarsForScore(score)
 
-		local cost = floor(choosen.cost*(1+waste))
-		if self.ironAmount < cost then self.events.notenough(player) return end
+		local _, car = randomItemWithWeight(cars)
+		if self.ironAmount < car.cost then self.events.notenough(player) return end
 
-		self.ironAmount = self.ironAmount - cost
+		self.ironAmount = self.ironAmount - car.cost
 		self:UpdateIronQuantityObjectsIndicator(.1)
 
-		local seconds = choosen.time*(1+waste)
+		-- base car producing time plus an extra based on how bad the player score
+		local secondsToFinish = car.time + (car.time * 1/score)
 		destroyElement(marker)
 
-		triggerClientEvent(player, "job-notification", resourceRoot, "autolab-job", "Você #ffe08cestá# produzindo um veículo, #ffe08csair# do laboratório irá #ffe08ccancelar# a produção.", seconds)
-		setTimer(function()
-			self:OutputVehicle(choosen.id)
+		local skeleton = createVehicle(car.id, self.releasePosition)
+		blowVehicle(skeleton, false)
+
+		triggerClientEvent(player, "job-notification", resourceRoot, "autolab-job", "Você #ffe08cestá# produzindo um veículo, #ffe08csair# do laboratório irá #ffe08ccancelar# a produção.", secondsToFinish)
+		
+		local timer = setTimer(function()
+
+			destroyElement(skeleton)
+			local vehicle = createVehicle(car.id, self.releasePosition)
+
+			-- base 1000 health plus upto 5000 based on score
+			local health = 1000 + score/100 * 5000
+			setElementHealth(vehicle, health)
+
+			setVehiclePlateText(vehicle, tostring(health))
+			setVehicleColor(vehicle, self.vehiclesColor, self.vehiclesColor, self.vehiclesColor, self.vehiclesColor)
+
+			if self.cancelingJob then
+				-- if the production was faster than the canceling timeout, cancel the canceling job
+				-- this happens aprox. if the car time is less than 25s
+				killTimer(self.cancelingJob.timer)
+				self.cancelingJob = nil
+
+				triggerClientEvent(player, "delete-notification", resourceRoot, "autolab-job-canceling")
+			end
+
+			self.currentJob = nil
 			self:CreateWorkingSpot(x, y, z)
-		end, seconds*1000, 1)
+		end, secondsToFinish*1000, 1)
+
+		local onCancel = function() self:CreateWorkingSpot(x, y, z) end
+		self.currentJob = {timer = timer, owner = player, skeleton = skeleton, onCancel = onCancel}
 	end)
 end
 
@@ -140,10 +194,10 @@ local lab = Autolab.new(Vector3(-721.0, 916.3, 12.1))
 lab.name = "Laboratório Automotivo Da Costa Norte"
 
 lab.releasePosition = Vector3(-722.6, 938.1, 12.1)
-lab.ironStackPosition = Vector3(-713.6, 957.8, 12.2)
+lab.ironStackPosition = Vector3(-692, 961, 12.2)
 
 lab.vehiclesColor = 0
-lab.ironAmount = cars[#cars].cost*5
+lab.ironAmount = CARS[#CARS].cost*5
 lab:UpdateIronQuantityObjectsIndicator(.1)
 
 lab:CreateWorkingSpot(-721.3, 926.5, 12.1)

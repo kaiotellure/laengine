@@ -58,6 +58,13 @@ end
 addEvent("job-notification", true)
 addEventHandler("job-notification", resourceRoot, jobNotify)
 
+function deleteNotification(id)
+	NOTIFICATIONS[id] = nil
+end
+
+addEvent("delete-notification", true)
+addEventHandler("delete-notification", resourceRoot, deleteNotification)
+
 local function everyFrame()
 	local acumulated_height = 0
 

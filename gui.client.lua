@@ -168,25 +168,26 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 		end
 	end
 
-	local function register()
+	local function startRendering()
 		addEventHandler("onClientRender", root, render)
 	end
-	local function unregister()
+	
+	local function stopRendering()
 		removeEventHandler("onClientRender", root, render)
 		showCursor(false)
 	end
 
 	return {
-		register = register,
-		unregister = unregister,
+		startRendering = startRendering,
+		stopRendering = stopRendering,
 
 		show = function()
-			register()
+			startRendering()
 			setCursorPosition(cx, cy)
 			showCursor(true, false)
 		end,
 		hide = function()
-			unregister()
+			stopRendering()
 			playSound("assets/soundfx/select.mp3")
 			on_selection(selected_item_index)
 		end
