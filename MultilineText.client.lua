@@ -4,6 +4,7 @@ MultilineText.__index = MultilineText
 
 function MultilineText.new(text, maxw)
 	local instance = {text = text, leading = .90, maxw = maxw}
+	instance.font = FONTS.Switzer
 	return setmetatable(instance, MultilineText)
 end
 
@@ -40,7 +41,7 @@ function MultilineText:SplitLines(words)
 	local line = ""
 
 	for _, word in ipairs(words) do
-		local teorical_width = dxGetTextSize(line..word.content.." ", nil, nil, FONTS.Switzer, false, true)
+		local teorical_width = dxGetTextSize(line..word.content.." ", nil, nil, self.font, false, true)
 
 	   	if teorical_width < self.maxw then
 	   		line = line..word.color..word.content.." "
@@ -60,7 +61,7 @@ function MultilineText:CalculateSize(tokens)
 
 	for i, token in ipairs(tokens) do
 		local expected_width, expected_height = dxGetTextSize(
-			token.content, nil, nil, FONTS.Switzer, false, true
+			token.content, nil, nil, self.font, false, true
 		)
 		expected_height = expected_height*self.leading
 
@@ -88,7 +89,7 @@ function MultilineText:Render()
 	for i, token in ipairs(lines) do
 		dxDrawText(
 			token.content, 0, offsety,
-			nil, nil, nil, nil, FONTS.Switzer, "left", "top", false, false, false, true
+			nil, nil, nil, nil, self.font, "left", "top", false, false, false, true
 		)
 		offsety = offsety + token.expected_height
 	end

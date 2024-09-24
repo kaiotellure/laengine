@@ -1,4 +1,4 @@
-local start_tick = getTickCount()
+local start_tick = getTickCount() + math.random(3600)*1000
 
 addEvent("radio-set-station", true)
 addEventHandler("radio-set-station", resourceRoot, function(index)

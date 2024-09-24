@@ -26,9 +26,11 @@ function Notification:Render()
 	self.target = dxCreateRenderTarget(self.width, self.height, true)
 
 	dxSetRenderTarget(self.target, true)
-	dxSetBlendMode("add")
+	dxSetBlendMode("modulate_add")
 
-	dxDrawRectangle(0, 0, self.width, self.height, tocolor(5, 5, 5, 225))
+	dxDrawRoundedRectangle(0, 0, self.width, self.height, 5, tocolor(5, 5, 5, 225))
+	dxDrawImage(0, 0, self.width, self.height, "assets/gradient_rectangle.png", 0, 0, 0, COLORS.yellow)
+	
 	local acumulated_height = self.padding
 
 	for i, component in ipairs(self.components) do

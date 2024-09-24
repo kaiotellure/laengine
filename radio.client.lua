@@ -38,23 +38,30 @@ function bindRadioControls(vehicle, getCurrentName)
 		triggerServerEvent("radio-set-station", resourceRoot, index)
 	end, getCurrentName)
 
-	bindKey("r", "down", wheel.show)
-	bindKey("r", "up", wheel.hide)
+	bindKey("radio_previous", "down", wheel.show)
+	bindKey("radio_previous", "up", wheel.hide)
 
 	local function onExplode()
 		wheel.stopRendering()
-		unbindKey("r", "down", wheel.show)
-		unbindKey("r", "up", wheel.hide)
+		unbindKey("radio_previous", "down", wheel.show)
+		unbindKey("radio_previous", "up", wheel.hide)
 	end
+
 	addEventHandler("onClientVehicleExplode", vehicle, onExplode)
+
+	local function enteredIntoAnotherVehicle(player)
+		if player == getLocalPlayer() and source ~= vehicle then
+			onExplode()
+			removeEventHandler("onClientVehicleEnter", root, enteredIntoAnotherVehicle)
+		end
+	end
+	addEventHandler("onClientVehicleEnter", root, enteredIntoAnotherVehicle)
 
 	addEventHandler("onClientVehicleStartExit", vehicle, function(player)
 		if player == getLocalPlayer() then
 			removeEventHandler("onClientVehicleExplode", vehicle, onExplode)
-			wheel.stopRendering()
-
-			unbindKey("r", "down", wheel.show)
-			unbindKey("r", "up", wheel.hide)
+			removeEventHandler("onClientVehicleEnter", root, enteredIntoAnotherVehicle)
+			onExplode()
 		end
 	end)
 end

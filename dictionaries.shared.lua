@@ -11,7 +11,24 @@ FONTS = {
 }
 
 ICONS = {
-	Alert = "ƀ", Radio = "Ɓ", Download = "Ƃ", R = "ƃ", ArrowRight = "Ƅ"
+	Alert = "ƀ", Radio = "Ɓ", Download = "Ƃ", R = "ƃ", ArrowRight = "Ƅ",
+	MouseRightButton = "ƅ"
+}
+
+MAX_CLIPS = {
+	[23] = 17, -- Silenced
+	[30] = 30, -- AK
+	[31] = 50, -- M4
+}
+
+COLORS = {
+	gray = tocolor(125, 125, 125),
+	white = tocolor(225, 225, 225),
+	yellow = tocolor(255, 224, 140),
+	red = tocolor(181, 22, 32),
+	DarkGreen = tocolor(0, 138, 55),
+	LightGreen = tocolor(0, 138, 55),
+	purple = tocolor(67, 0, 135)
 }
 
 HABILITIES = {
@@ -33,6 +50,11 @@ RADIO_STATIONS = {
 	},
 	{
 		name = "ÁrabicaFM",
+		source = "assets/radios/arabica.mp3",
+		infos = "130 MBs", logo = "assets/radios/arabica.jpeg"
+	},
+	{
+		name = "ÁrabicaFM 2",
 		source = "assets/radios/arabica.mp3",
 		infos = "130 MBs", logo = "assets/radios/arabica.jpeg"
 	},
@@ -62,7 +84,8 @@ end
 
 TIPS = {
 	space(ICONS.Radio, "Pressione e segure #ffe08c"..ICONS.R.."# para alterar a #ffe08crádio# do seu veículo."),
-	space(ICONS.Radio, "Portas abertas #ffe08camplificam# o som do #ffe08crádio# do veículo para ouvintes externos.")
+	space(ICONS.Radio, "Portas abertas #ffe08camplificam# o som do #ffe08crádio# do veículo para ouvintes externos."),
+	space("Pressione #ffe08c"..ICONS.MouseRightButton.."# para atirar pela janela.")
 }
 
 function table.shallow_copy(t)
@@ -81,7 +104,20 @@ atan2 = math.atan2
 ceil = math.ceil
 sqrt = math.sqrt
 floor = math.floor
+max = math.max
+min = math.min
 
 function rot(angle, by, range)
 	return (angle + by) % range
+end
+
+function format_money(money)
+	money = tostring(money):reverse()
+	local formated = ""
+
+	for i = 1, #money do
+		formated = formated..money:sub(i,i)..(i%3 == 0 and i ~= #money and "." or "")
+	end
+
+	return formated:reverse()
 end

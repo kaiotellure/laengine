@@ -8,92 +8,6 @@ function get_image_size(path)
 	fileClose(file); return dxGetPixelsSize(pixels)
 end
 
--- A RenderManager takes care of positining many elements together, doing jobs like
--- Calculate the size and position of elements so they are nicelly spaced
-function new_render_group_manager(default_font, padding)
-	local width, height = 0, 0
-	local render_tasks = {}
-
-	return {
-		clear = function()
-			width, height = 0, 0
-			render_tasks = {}
-		end,
-		get_size = function()
-			return width, height
-		end,
-		get_tasks = function()
-			return render_tasks
-		end,
-		text = function(text, maxw)
-			local expected_width, expected_height = dxGetTextSize(text, maxw, 1, 1, default_font, true)
-			local previous_width, previous_height = width, height
-
-			-- reporting used space, see this as a layout, eg. aplly padding then the text size
-			-- then another padding, fot both x and y
-			width = math.max(width, padding + expected_width + padding)
-			height = height + padding + expected_height + padding
-
-			table.insert(render_tasks, function()
-				dxDrawText(
-					text, padding, -- x
-					padding + previous_height, -- y
-					padding + expected_width, -- until absolute x
-					previous_height + padding + expected_height, -- until absolute y
-					tocolor(255, 255, 255), 1, default_font, "left", "center", false, true
-				)
-			end)
-		end,
-		image = function(path, ratio)
-			local ew, eh = get_image_size(path)
-			local expected_width, expected_height = ew*ratio, eh*ratio
-			local previous_width, previous_height = width, height
-
-			-- reporting used space, i see this as a layout, eg. aplly padding then the img size
-			-- then another padding, fot both x and y
-			width = math.max(width, padding + expected_width + padding)
-			height = height + padding + expected_height + padding
-
-			table.insert(render_tasks, function()
-				dxDrawImage(
-					padding, padding + previous_height,
-					expected_width, expected_height, path
-				)
-			end)
-		end,
-		background = function(color)
-			table.insert(render_tasks, function()
-				dxDrawRectangle(0, 0, width, height, color)
-			end)
-		end,
-	}
-end
-
-local function execute_drawing_tasks(target, tasks)
-	dxSetRenderTarget(target, true)
-	dxSetBlendMode("modulate_add")
-
-	for i, task in ipairs(tasks) do
-		task()
-	end
-
-	dxSetBlendMode("blend")
-	dxSetRenderTarget()
-end
-
-function render_group_manager(manager)
-	local w, h = manager.get_size()
-	local target = dxCreateRenderTarget(w, h, true)
-
-	execute_drawing_tasks(target, manager.get_tasks())
-
-	return {
-		draw = function(x, y)
-			dxDrawImage(x, y, w, h, target)
-		end
-	}
-end
-
 function wheel_selector(items, radius, on_selection, getCurrentName)
 
 	-- angle between each item; the spacing size.
@@ -108,12 +22,15 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 	local last_hovered_name = "NENHUM"
 
 	function render()
-		dxDrawRectangle(0, 0, sx, sy, tocolor(3, 3, 3, 250)) -- background dark rect
-		dxDrawImage(cc_x, cc_y, cc_size, cc_size, "assets/center_circle.png")
+		dxDrawRectangle(0, 0, sx, sy, tocolor(3, 3, 3, 250))
+		dxDrawImage(cc_x, cc_y, cc_size, cc_size, "assets/center_circle.png", 0, 0, 0, selected_item_index == 0 and COLORS.red or nil)
 
-		local currentText = space(getCurrentName(), ICONS.ArrowRight, last_hovered_name)
-		local w, h = dxGetTextSize(currentText, 0, 1, FONTS.Switzer)
-		dxDrawText(currentText, cx-w/2, h, w, h, tocolor(200,200,200), 1, FONTS.Switzer)
+		local current = space(ICONS.Radio, "Rádio atual:", getCurrentName())
+		local cw, ch = dxGetTextSize(current, 0, 1, FONTS.SwitzerMedium)
+		dxDrawText(current, cx-cw/2, ch, cw, ch, COLORS.gray, 1, FONTS.SwitzerMedium)
+
+		local sw, sh = dxGetTextSize(last_hovered_name, 0, 1, FONTS.SwitzerMedium)
+		dxDrawText(last_hovered_name, cx-sw/2, sh+ch, sw, sh, COLORS.LightGreen, 1, FONTS.SwitzerMedium)
 
 		-- getCursorPosition returns a relative 0-1 float
 		-- so we convert into an absolute resolution
@@ -152,17 +69,21 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 
 			local ratio = 16/radius
 
+			local w = cc_size -- item.width * ratio
+			local h = cc_size -- item.height * ratio
+
 			if i == selected_item_index then
 				if i ~= last_hovered then
 					playSound("assets/soundfx/hover.mp3")
 				end
+
 				last_hovered = i
 				last_hovered_name = item.name
-				ratio = ratio + .01
-			end
+				-- ratio = ratio + .01
 
-			local w = item.width * ratio
-			local h = item.height * ratio
+				local padding = 16*rx
+				dxDrawImage(cx + x - w/2 - padding, cy + y - h/2 - padding, w + padding*2, h + padding*2, "assets/gradient_square.png", 0, 0, 0, COLORS.DarkGreen)
+			end
 
 			dxDrawImage(cx + x - w/2, cy + y - h/2, w, h, item.src)
 		end
@@ -196,4 +117,5 @@ end
 
 addEventHandler("onClientResourceStart", resourceRoot, function()
 	FONTS.Switzer = dxCreateFont('assets/switzer-regular.ttf', 10, false, 'antialiased') or FONTS.Default
+	FONTS.SwitzerMedium = dxCreateFont('assets/switzer-regular.ttf', 15, false, 'antialiased') or FONTS.Default
 end)

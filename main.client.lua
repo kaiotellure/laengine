@@ -1,13 +1,24 @@
 
 addEventHandler("onClientResourceStart", resourceRoot, function()
 	setPlayerHudComponentVisible("all", false)
+	setPlayerHudComponentVisible("crosshair", true)
 	disable_default_radio()
+end)
+
+addEventHandler("onClientPlayerSpawn", getLocalPlayer(), function()
 	showChat(false)
 end)
 
 addEventHandler("onClientVehicleEnter", root, function(player)
 	if player == getLocalPlayer() then
 		setPlayerHudComponentVisible("radar", true)
+	end
+end)
+
+addEventHandler("onClientVehicleStartEnter", root, function(player)
+	if player == getLocalPlayer() then
+		local weapon = getPedWeapon(getLocalPlayer())
+		if weapon >= 9 then setTimer(tip, 2000, 1, 10, 3) end
 	end
 end)
 

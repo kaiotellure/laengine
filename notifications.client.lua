@@ -66,13 +66,40 @@ addEvent("delete-notification", true)
 addEventHandler("delete-notification", resourceRoot, deleteNotification)
 
 local function everyFrame()
+	local lp = getLocalPlayer()
+	local formatedMoney = format_money(getPlayerMoney())
+
+	local moneyWidth, moneyHeight = dxGetTextSize(formatedMoney, 0, 1, "pricedown")
+	dxDrawBorderedText(1, formatedMoney, sx-64-moneyWidth, moneyHeight, 0, 0, COLORS.DarkGreen, 1, "pricedown")
+
+	local weaponId = getPedWeapon(lp)
+	local currentVehicle = getPedOccupiedVehicle(lp)
+
+	if weaponId ~= 0 and not isElementInWater(lp) or isPedDoingGangDriveby(lp) then
+		local weaponMaxClip = MAX_CLIPS[weaponId]
+
+		local ammoInClip = getPedAmmoInClip(lp)
+		local totalAmmo = getPedTotalAmmo(lp)
+
+		local ammoLeft = totalAmmo-ammoInClip
+		local ammoLeftText = tostring(ammoLeft)
+
+		local ammoLeftWidth, ammoLeftHeight = dxGetTextSize(ammoLeftText, 0, 1, "pricedown")
+		dxDrawBorderedText(1, ammoLeftText, sx-64-ammoLeftWidth, moneyHeight*2 - 5, 0, 0, COLORS.gray, 1, "pricedown")
+
+		local ammoInClipText = tostring(ammoInClip)
+		local ammoInClipWidth, ammoInClipHeight = dxGetTextSize(ammoInClipText, 0, 1, "pricedown")
+		
+		dxDrawBorderedText(1, ammoInClipText, sx-64-ammoLeftWidth-ammoInClipWidth-10, moneyHeight*2 - 5, 0, 0, COLORS.white, 1, "pricedown")
+	end
+
 	local acumulated_height = 0
 
 	for id, notification in pairs(NOTIFICATIONS) do
 		if not notification.__disabled then
 			dxDrawImage(
-				64*rx, -- 64 pixels to the right adjusted for every screen size
-				(64*ry + acumulated_height), -- 64 also adjusted, down + previous notifications
+				64,
+				(moneyHeight + acumulated_height), -- 64 also adjusted, down + previous notifications
 				notification.width, notification.height, notification.target
 			)
 			-- tell next notification where to y render, 5 is the padding
@@ -82,7 +109,3 @@ local function everyFrame()
 end
 
 addEventHandler("onClientRender", root, everyFrame)
-addEventHandler( "onClientResourceStart", getRootElement(), function ()
-	textNotify("test1", "This is a test notification.", 10)
-	textNotify("test2", "This is another test notification.", 10)
-end )

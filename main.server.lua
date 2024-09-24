@@ -24,9 +24,26 @@ local function main()
 		spawn(all_players[i])
 	end
 
-	addEventHandler("onPlayerJoin", root, spawn)
+	-- Spawn player after death
 	addEventHandler("onPlayerWasted", root, function() spawn(source) end)
-	-- addEventHandler("onPlayerQuit", root, onPlayerQuit)
+
+	addEventHandler("onPlayerLogin", root, function(previousAccount, account)
+		assert(account, "no player account")
+
+		local savedMoney = getAccountData(account, "engine.money")
+		setPlayerMoney(source, savedMoney or 1000)
+
+		spawn(source)
+	end)
+	
+	addEventHandler("onPlayerQuit", root, function()
+		local account = getPlayerAccount(source)
+		assert(account, "no player account")
+		assert(not isGuestAccount(account), "was a guest account")
+
+		local currentMoney = getPlayerMoney(source)
+		setAccountData(account, "engine.money", currentMoney)
+	end)
 end
 
 addEventHandler("onResourceStart", resourceRoot, main)
