@@ -21,8 +21,14 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 	local last_hovered = 0
 	local last_hovered_name = "NENHUM"
 
+	local blurBox = exports.blur_box:createBlurBox(0, 0, sx, sy, 136, 207, 14, 255, false)
+	exports.blur_box:setBlurBoxEnabled(blurBox, false)
+
 	function render()
-		dxDrawRectangle(0, 0, sx, sy, tocolor(3, 3, 3, 250))
+		-- dxDrawRectangle(0, 0, sx, sy, tocolor(3, 3, 3, 100))
+		-- dxDrawImage(0, 0, sx, sy, "assets/gradient_rectangle.png", 0, 0, 0, COLORS.LightGreen)
+
+		dxDrawImage(0, 0, sx, sy, "assets/center_shadow.png", 0, 0, 0, tocolor(255,255,255))
 		dxDrawImage(cc_x, cc_y, cc_size, cc_size, "assets/center_circle.png", 0, 0, 0, selected_item_index == 0 and COLORS.red or nil)
 
 		local current = space(ICONS.Radio, "Rádio atual:", getCurrentName())
@@ -90,10 +96,12 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 	end
 
 	local function startRendering()
-		addEventHandler("onClientRender", root, render)
+		exports.blur_box:setBlurBoxEnabled(blurBox, true)
+		addEventHandler("onClientRender", root, render, true, "low-6.0")
 	end
 	
 	local function stopRendering()
+		exports.blur_box:setBlurBoxEnabled(blurBox, false)
 		removeEventHandler("onClientRender", root, render)
 		showCursor(false)
 	end
