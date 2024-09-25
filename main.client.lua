@@ -2,7 +2,11 @@
 addEventHandler("onClientResourceStart", resourceRoot, function()
 	setPlayerHudComponentVisible("all", false)
 	setPlayerHudComponentVisible("crosshair", true)
+
 	disable_default_radio()
+	-- disable default gun sounds
+	setAmbientSoundEnabled("gunfire", false)
+	-- setWorldSoundEnabled(5, false)
 end)
 
 addEventHandler("onClientPlayerSpawn", getLocalPlayer(), function()

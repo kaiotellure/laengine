@@ -18,10 +18,10 @@ end
 
 local function main()
 	setTime(0, 0)
-	local all_players = getElementsByType("player")
+	local allPlayers = getElementsByType("player")
 
-	for i = 1, #all_players do
-		spawn(all_players[i])
+	for i = 1, #allPlayers do
+		spawn(allPlayers[i])
 	end
 
 	-- Spawn player after death
@@ -32,6 +32,7 @@ local function main()
 
 		local savedMoney = getAccountData(account, "engine.money")
 		setPlayerMoney(source, savedMoney or 1000)
+		setElementData(source, "id", getAccountID(account))
 
 		spawn(source)
 	end)

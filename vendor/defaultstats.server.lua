@@ -1,11 +1,11 @@
 local statsTable = {
-	[69] = 500,  -- Pistol
+	[69] = 999,  -- Pistol
 	[70] = 999,  -- Silenced pistol
 	[71] = 999,  -- Desert eagle
 	[72] = 999,  -- Shotgun
-	[73] = 500,  -- Sawnoff, 999 for duel wield
+	[73] = 999,  -- Sawnoff, 999 for duel wield
 	[74] = 999,  -- Spas-12
-	[75] = 500,  -- Micro-uzi & Tec-9, 999 for duel wield
+	[75] = 999,  -- Micro-uzi & Tec-9, 999 for duel wield
 	[76] = 999,  -- MP5
 	[77] = 999,  -- AK-47
 	[78] = 999,  -- M4

@@ -8,6 +8,10 @@ function get_image_size(path)
 	fileClose(file); return dxGetPixelsSize(pixels)
 end
 
+wholeScreenBlurBox = exports.blur_box:createBlurBox(0, 0, sx, sy, 136, 207, 14, 255, false)
+exports.blur_box:setBlurBoxEnabled(wholeScreenBlurBox, false)
+exports.blur_box:setScreenResolutionMultiplier(wholeScreenBlurBox, .5, .5)
+
 function wheel_selector(items, radius, on_selection, getCurrentName)
 
 	-- angle between each item; the spacing size.
@@ -21,22 +25,20 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 	local last_hovered = 0
 	local last_hovered_name = "NENHUM"
 
-	local blurBox = exports.blur_box:createBlurBox(0, 0, sx, sy, 136, 207, 14, 255, false)
-	exports.blur_box:setBlurBoxEnabled(blurBox, false)
-
 	function render()
+		local render_start = getTickCount()
 		-- dxDrawRectangle(0, 0, sx, sy, tocolor(3, 3, 3, 100))
 		-- dxDrawImage(0, 0, sx, sy, "assets/gradient_rectangle.png", 0, 0, 0, COLORS.LightGreen)
 
-		dxDrawImage(0, 0, sx, sy, "assets/center_shadow.png", 0, 0, 0, tocolor(255,255,255))
+		dxDrawImage(0, 0, sx, sy, "assets/center_shadow.png")
 		dxDrawImage(cc_x, cc_y, cc_size, cc_size, "assets/center_circle.png", 0, 0, 0, selected_item_index == 0 and COLORS.red or nil)
 
-		local current = space(ICONS.Radio, "Rádio atual:", getCurrentName())
-		local cw, ch = dxGetTextSize(current, 0, 1, FONTS.SwitzerMedium)
-		dxDrawText(current, cx-cw/2, ch, cw, ch, COLORS.gray, 1, FONTS.SwitzerMedium)
+		local current = space(ICONS.Radio, getCurrentName())
+		local cw, ch = dxGetTextSize(current, 0, 1, FONTS.Switzer)
+		dxDrawBorderedText(1, current, cx-cw/2, ch, cw, ch, COLORS.gray, 1, FONTS.Switzer)
 
-		local sw, sh = dxGetTextSize(last_hovered_name, 0, 1, FONTS.SwitzerMedium)
-		dxDrawText(last_hovered_name, cx-sw/2, sh+ch, sw, sh, COLORS.LightGreen, 1, FONTS.SwitzerMedium)
+		local sw, sh = dxGetTextSize(last_hovered_name, 0, 1, FONTS.SignPainterMedium)
+		dxDrawBorderedText(1, last_hovered_name, cx-sw/2, sh+ch-10, sw, sh, COLORS.White, 1, FONTS.SignPainterMedium)
 
 		-- getCursorPosition returns a relative 0-1 float
 		-- so we convert into an absolute resolution
@@ -88,20 +90,22 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 				-- ratio = ratio + .01
 
 				local padding = 16*rx
-				dxDrawImage(cx + x - w/2 - padding, cy + y - h/2 - padding, w + padding*2, h + padding*2, "assets/gradient_square.png", 0, 0, 0, COLORS.DarkGreen)
+				dxDrawImage(cx + x - w/2 - padding, cy + y - h/2 - padding, w + padding*2, h + padding*2, "assets/gradient_square.png", 0, 0, 0, COLORS.gray)
 			end
 
 			dxDrawImage(cx + x - w/2, cy + y - h/2, w, h, item.src)
 		end
+
+		DEBUG["radio wheel render time"] = (getTickCount()-render_start)/1000
 	end
 
 	local function startRendering()
-		exports.blur_box:setBlurBoxEnabled(blurBox, true)
+		exports.blur_box:setBlurBoxEnabled(wholeScreenBlurBox, true)
 		addEventHandler("onClientRender", root, render, true, "low-6.0")
 	end
 	
 	local function stopRendering()
-		exports.blur_box:setBlurBoxEnabled(blurBox, false)
+		exports.blur_box:setBlurBoxEnabled(wholeScreenBlurBox, false)
 		removeEventHandler("onClientRender", root, render)
 		showCursor(false)
 	end
@@ -123,7 +127,18 @@ function wheel_selector(items, radius, on_selection, getCurrentName)
 	}
 end
 
+local function font(name, size)
+	return dxCreateFont("assets/"..name..".ttf", size or 10, false, 'antialiased') or FONTS.Default
+end
+
 addEventHandler("onClientResourceStart", resourceRoot, function()
-	FONTS.Switzer = dxCreateFont('assets/switzer-regular.ttf', 10, false, 'antialiased') or FONTS.Default
-	FONTS.SwitzerMedium = dxCreateFont('assets/switzer-regular.ttf', 15, false, 'antialiased') or FONTS.Default
+	FONTS.Switzer = font("switzer-regular")
+	FONTS.SwitzerMedium = font("switzer-regular", 15)
+
+	FONTS.SignPainter = font("signpainter")
+	FONTS.SignPainterMedium = font("signpainter", 20)
+end)
+
+addEventHandler("onClientResourceStop", resourceRoot, function()
+	exports.blur_box:destroyBlurBox(wholeScreenBlurBox)
 end)

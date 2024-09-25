@@ -15,15 +15,35 @@ ICONS = {
 	MouseRightButton = "ƅ"
 }
 
-MAX_CLIPS = {
-	[23] = 17, -- Silenced
-	[30] = 30, -- AK
-	[31] = 50, -- M4
+local function path(name)
+	return "assets/weapons/"..name
+end
+
+WEAPONS = {
+	[30] = {
+		icon = path("ak.png"), fire = path("ak.mp3"),
+		reload = path("ak-reload.mp3")
+	},
+	[31] = {
+		icon = path("m4.png"), fire = path("m4.mp3"),
+		reload = path("m4-reload.mp3")
+	},
+	[22] = {
+		icon = path("pistol.png"), fire = path("pistol.mp3"),
+		reload = path("pistol-reload.mp3")
+	},
+	[23] = {
+		icon = path("pistol-silenced.png"), fire = path("pistol-silenced.mp3"),
+		reload = path("pistol-silenced-reload.mp3")
+	},
+	[34] = {
+		icon = path("sniper.png")
+	}
 }
 
 COLORS = {
 	gray = tocolor(125, 125, 125),
-	white = tocolor(225, 225, 225),
+	white = tocolor(240, 240, 240),
 	yellow = tocolor(255, 224, 140),
 	red = tocolor(181, 22, 32),
 	DarkGreen = tocolor(0, 138, 55),
@@ -52,16 +72,6 @@ RADIO_STATIONS = {
 		name = "ÁrabicaFM",
 		source = "assets/radios/arabica.mp3",
 		infos = "130 MBs", logo = "assets/radios/arabica.jpeg"
-	},
-	{
-		name = "ÁrabicaFM 2",
-		source = "assets/radios/arabica.mp3",
-		infos = "130 MBs", logo = "assets/radios/arabica.jpeg"
-	},
-	{
-		name = "Matuê 333",
-		source = "assets/radios/matue-333.mp3",
-		infos = "(40 MB)", logo = "assets/radios/matue-333.jpg"
 	}
 }
 

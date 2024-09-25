@@ -65,7 +65,31 @@ end
 addEvent("delete-notification", true)
 addEventHandler("delete-notification", resourceRoot, deleteNotification)
 
+local function drawWorld()
+	for i, player in ipairs(getElementsByType("player")) do
+		local id = getElementData(player, "id")
+		DEBUG["id"] = id
+
+		if id then
+			local x, y, z = getElementPosition(player)
+			local sx, sy, distance = getScreenFromWorldPosition(x, y, z-1)
+
+			DEBUG["sx"] = sx
+			DEBUG["distance"] = distance
+
+			if sx and distance < 100 then
+				local name = getPlayerName(player)
+				local w, h = dxGetTextSize(name, 0, 1, FONTS.SignPainterMedium)
+				dxDrawBorderedText(1, name, sx-5-w/2, sy, 0, 0, tocolor(255,255,255,100), 1, FONTS.SignPainterMedium)
+			end
+		end
+	end
+end
+
 local function everyFrame()
+	local render_start = getTickCount()
+	drawWorld()
+
 	local lp = getLocalPlayer()
 	local formatedMoney = format_money(getPlayerMoney())
 
@@ -76,8 +100,6 @@ local function everyFrame()
 	local currentVehicle = getPedOccupiedVehicle(lp)
 
 	if weaponId ~= 0 and not isElementInWater(lp) or isPedDoingGangDriveby(lp) then
-		local weaponMaxClip = MAX_CLIPS[weaponId]
-
 		local ammoInClip = getPedAmmoInClip(lp)
 		local totalAmmo = getPedTotalAmmo(lp)
 
@@ -91,6 +113,13 @@ local function everyFrame()
 		local ammoInClipWidth, ammoInClipHeight = dxGetTextSize(ammoInClipText, 0, 1, "pricedown")
 		
 		dxDrawBorderedText(1, ammoInClipText, sx-64-ammoLeftWidth-ammoInClipWidth-10, moneyHeight*2 - 5, 0, 0, COLORS.white, 1, "pricedown")
+
+		local weaponProps = WEAPONS[weaponId]
+		if weaponProps then
+			local w, h = get_image_size(weaponProps.icon)
+			w, h = w*.25, h*.25
+			dxDrawImage(sx-64-w, moneyHeight*3, w, h, weaponProps.icon)
+		end
 	end
 
 	local acumulated_height = 0
@@ -106,6 +135,8 @@ local function everyFrame()
 			acumulated_height = acumulated_height + notification.height + 5
 		end
 	end
+
+	DEBUG["gameplay interface render time"] = (getTickCount()-render_start)/1000
 end
 
 addEventHandler("onClientRender", root, everyFrame)
