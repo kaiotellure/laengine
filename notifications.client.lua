@@ -1,6 +1,6 @@
 local NOTIFICATIONS = {}
 
-function textNotify(id, text, duration)
+function TEXT_NOTIFY(id, text, duration)
 	duration = duration or 5 -- default duration when not specified
 
 	-- creates new or overwrites existing notifications with the same id
@@ -9,7 +9,8 @@ function textNotify(id, text, duration)
 
 	-- render multiline text, and add to be rendered by notification container
 	local multitext = MultilineText.new(text, 300)
-	multitext:Render(); notification:AddComponent(multitext)
+	multitext:Render()
+	notification:AddComponent(multitext)
 
 	-- render notification container
 	notification:Render()
@@ -17,13 +18,15 @@ function textNotify(id, text, duration)
 
 	-- using __disabled, notification container will ignore and if a new notification overwrote it
 	-- the lua garbage collector will delete it
-	setTimer(function() notification.__disabled = true end, duration*1000, 1)
+	setTimer(function()
+		notification.__disabled = true
+	end, duration * 1000, 1)
 end
 
 addEvent("text-notification", true)
-addEventHandler("text-notification", resourceRoot, textNotify)
+addEventHandler("text-notification", resourceRoot, TEXT_NOTIFY)
 
-function jobNotify(id, text, duration)
+function JOB_NOTIFY(id, text, duration)
 	assert(not NOTIFICATIONS[id], "job notifications needs to be unique")
 	duration = duration or 5 -- default duration when not specified
 
@@ -32,11 +35,13 @@ function jobNotify(id, text, duration)
 
 	-- render multiline text, and add to be rendered with notification container
 	local multitext = MultilineText.new(text, 300)
-	multitext:Render(); notification:AddComponent(multitext)
+	multitext:Render()
+	notification:AddComponent(multitext)
 
 	-- render progress bar, and add to be rendered with notification container
 	local progress = Progress.new(multitext.width)
-	progress:Render(); notification:AddComponent(progress)
+	progress:Render()
+	notification:AddComponent(progress)
 
 	-- render notification container
 	notification:Render()
@@ -50,20 +55,21 @@ function jobNotify(id, text, duration)
 			NOTIFICATIONS[id] = nil
 		end
 
-		progress:SetValue(lapsed/duration*100); progress:Render()
+		progress:SetValue(lapsed / duration * 100)
+		progress:Render()
 		notification:Render()
 	end, 1000, 0)
 end
 
 addEvent("job-notification", true)
-addEventHandler("job-notification", resourceRoot, jobNotify)
+addEventHandler("job-notification", resourceRoot, JOB_NOTIFY)
 
-function deleteNotification(id)
+function DELETE_NOTIFICATION(id)
 	NOTIFICATIONS[id] = nil
 end
 
 addEvent("delete-notification", true)
-addEventHandler("delete-notification", resourceRoot, deleteNotification)
+addEventHandler("delete-notification", resourceRoot, DELETE_NOTIFICATION)
 
 local function drawWorld()
 	for i, player in ipairs(getElementsByType("player")) do
@@ -72,7 +78,7 @@ local function drawWorld()
 
 		if id then
 			local x, y, z = getElementPosition(player)
-			local sx, sy, distance = getScreenFromWorldPosition(x, y, z-1)
+			local sx, sy, distance = getScreenFromWorldPosition(x, y, z - 1)
 
 			DEBUG["sx"] = sx
 			DEBUG["distance"] = distance
@@ -80,7 +86,17 @@ local function drawWorld()
 			if sx and distance < 100 then
 				local name = getPlayerName(player)
 				local w, h = dxGetTextSize(name, 0, 1, FONTS.SignPainterMedium)
-				dxDrawBorderedText(1, name, sx-5-w/2, sy, 0, 0, tocolor(255,255,255,100), 1, FONTS.SignPainterMedium)
+				dxDrawBorderedText(
+					1,
+					name,
+					sx - 5 - w / 2,
+					sy,
+					0,
+					0,
+					tocolor(255, 255, 255, 100),
+					1,
+					FONTS.SignPainterMedium
+				)
 			end
 		end
 	end
@@ -94,7 +110,7 @@ local function everyFrame()
 	local formatedMoney = format_money(getPlayerMoney())
 
 	local moneyWidth, moneyHeight = dxGetTextSize(formatedMoney, 0, 1, "pricedown")
-	dxDrawBorderedText(1, formatedMoney, sx-64-moneyWidth, moneyHeight, 0, 0, COLORS.DarkGreen, 1, "pricedown")
+	dxDrawBorderedText(1, formatedMoney, SX - 64 - moneyWidth, moneyHeight, 0, 0, COLORS.DarkGreen, 1, "pricedown")
 
 	local weaponId = getPedWeapon(lp)
 	local currentVehicle = getPedOccupiedVehicle(lp)
@@ -103,22 +119,42 @@ local function everyFrame()
 		local ammoInClip = getPedAmmoInClip(lp)
 		local totalAmmo = getPedTotalAmmo(lp)
 
-		local ammoLeft = totalAmmo-ammoInClip
+		local ammoLeft = totalAmmo - ammoInClip
 		local ammoLeftText = tostring(ammoLeft)
 
 		local ammoLeftWidth, ammoLeftHeight = dxGetTextSize(ammoLeftText, 0, 1, "pricedown")
-		dxDrawBorderedText(1, ammoLeftText, sx-64-ammoLeftWidth, moneyHeight*2 - 5, 0, 0, COLORS.gray, 1, "pricedown")
+		dxDrawBorderedText(
+			1,
+			ammoLeftText,
+			SX - 64 - ammoLeftWidth,
+			moneyHeight * 2 - 5,
+			0,
+			0,
+			COLORS.gray,
+			1,
+			"pricedown"
+		)
 
 		local ammoInClipText = tostring(ammoInClip)
 		local ammoInClipWidth, ammoInClipHeight = dxGetTextSize(ammoInClipText, 0, 1, "pricedown")
-		
-		dxDrawBorderedText(1, ammoInClipText, sx-64-ammoLeftWidth-ammoInClipWidth-10, moneyHeight*2 - 5, 0, 0, COLORS.white, 1, "pricedown")
+
+		dxDrawBorderedText(
+			1,
+			ammoInClipText,
+			SX - 64 - ammoLeftWidth - ammoInClipWidth - 10,
+			moneyHeight * 2 - 5,
+			0,
+			0,
+			COLORS.white,
+			1,
+			"pricedown"
+		)
 
 		local weaponProps = WEAPONS[weaponId]
 		if weaponProps then
-			local w, h = get_image_size(weaponProps.icon)
-			w, h = w*.25, h*.25
-			dxDrawImage(sx-64-w, moneyHeight*3, w, h, weaponProps.icon)
+			local w, h = GET_IMAGE_SIZE(weaponProps.icon)
+			w, h = w * 0.25, h * 0.25
+			dxDrawImage(SX - 64 - w, moneyHeight * 3, w, h, weaponProps.icon)
 		end
 	end
 
@@ -129,14 +165,17 @@ local function everyFrame()
 			dxDrawImage(
 				64,
 				(moneyHeight + acumulated_height), -- 64 also adjusted, down + previous notifications
-				notification.width, notification.height, notification.target
+				notification.width,
+				notification.height,
+				notification.target
 			)
 			-- tell next notification where to y render, 5 is the padding
 			acumulated_height = acumulated_height + notification.height + 5
 		end
 	end
 
-	DEBUG["gameplay interface render time"] = (getTickCount()-render_start)/1000
+	DEBUG["gameplay interface render time"] = (getTickCount() - render_start) / 1000
 end
 
 addEventHandler("onClientRender", root, everyFrame)
+

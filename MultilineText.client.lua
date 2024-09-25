@@ -3,7 +3,7 @@ MultilineText.__type = "multilinetext"
 MultilineText.__index = MultilineText
 
 function MultilineText.new(text, maxw)
-	local instance = {text = text, leading = .90, maxw = maxw}
+	local instance = { text = text, leading = 0.90, maxw = maxw }
 	instance.font = FONTS.Switzer
 	return setmetatable(instance, MultilineText)
 end
@@ -17,22 +17,26 @@ function MultilineText:Split()
 
 		if rune == "#" then
 			if not inBlock then
-				hex = rune..self.text:sub(index+1, index+6)
+				hex = rune .. self.text:sub(index + 1, index + 6)
 				index = index + 6
 				inBlock = true
 			end
 		elseif rune == " " then
-			table.insert(words, {content = clip, color = inBlock and hex or "#ffffff"})
-			if self.text:sub(index-1, index-1) == "#" then inBlock = false end
+			table.insert(words, { content = clip, color = inBlock and hex or "#ffffff" })
+			if self.text:sub(index - 1, index - 1) == "#" then
+				inBlock = false
+			end
 			clip = ""
 		else
-			clip = clip..rune
+			clip = clip .. rune
 		end
 
 		index = index + 1
 	end
 
-	if #clip then table.insert(words, {content = clip, color = inBlock and hex or "#ffffff"}) end
+	if #clip then
+		table.insert(words, { content = clip, color = inBlock and hex or "#ffffff" })
+	end
 	return words
 end
 
@@ -41,29 +45,28 @@ function MultilineText:SplitLines(words)
 	local line = ""
 
 	for _, word in ipairs(words) do
-		local teorical_width = dxGetTextSize(line..word.content.." ", nil, nil, self.font, false, true)
+		local teorical_width = dxGetTextSize(line .. word.content .. " ", nil, nil, self.font, false, true)
 
-	   	if teorical_width < self.maxw then
-	   		line = line..word.color..word.content.." "
-	   		-- count = count + #word
-	   	else
-	   		table.insert(lines, {type = "line", content = line})
-	   		count = 0; line = word.color..word.content.." "
-	   	end
+		if teorical_width < self.maxw then
+			line = line .. word.color .. word.content .. " "
+		else
+			table.insert(lines, { type = "line", content = line })
+			line = word.color .. word.content .. " "
+		end
 	end
 
-	if #line then table.insert(lines, {type = "line", content = line}) end
+	if #line then
+		table.insert(lines, { type = "line", content = line })
+	end
 	return lines
 end
 
 function MultilineText:CalculateSize(tokens)
 	local biggest_width, total_height = 0, 0
 
-	for i, token in ipairs(tokens) do
-		local expected_width, expected_height = dxGetTextSize(
-			token.content, nil, nil, self.font, false, true
-		)
-		expected_height = expected_height*self.leading
+	for _, token in ipairs(tokens) do
+		local expected_width, expected_height = dxGetTextSize(token.content, nil, nil, self.font, false, true)
+		expected_height = expected_height * self.leading
 
 		biggest_width = math.max(biggest_width, expected_width)
 		total_height = total_height + expected_height
@@ -87,10 +90,7 @@ function MultilineText:Render()
 	local offsety = -3
 
 	for i, token in ipairs(lines) do
-		dxDrawText(
-			token.content, 0, offsety,
-			nil, nil, nil, nil, self.font, "left", "top", false, false, false, true
-		)
+		dxDrawText(token.content, 0, offsety, nil, nil, nil, nil, self.font, "left", "top", false, false, false, true)
 		offsety = offsety + token.expected_height
 	end
 
