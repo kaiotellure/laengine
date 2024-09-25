@@ -10,6 +10,7 @@
 	<file src="/**/*.jpeg" />
 	<file src="/**/*.jpg" />
 	<file src="/**/*.ttf" />
+	<file src="/**/*.fx" />
 
 	<file src="assets/**/*.mp3" />
 	<file src="assets/radios/*.mp3" download="false" />
