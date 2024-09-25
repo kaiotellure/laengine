@@ -12,15 +12,16 @@ local function onShotsFired(weaponId, _, ammoInClip)
 		--local distanceMeToShot = getDistanceBetweenPoints3D(x, y, z, mx, my, mz)
 
 		--if distanceMeToShot > 25 then
-			--setSoundEffectEnabled(sound, "reverb", true)
+		--setSoundEffectEnabled(sound, "reverb", true)
 
-			--local verbDecay = 3000*(distanceMeToShot/SOUND_MAX_DISTANCE)
-			--local ok = pcall(setSoundEffectParameter, sound, "reverb", "reverbTime", verbDecay)
+		--local verbDecay = 3000*(distanceMeToShot/SOUND_MAX_DISTANCE)
+		--local ok = pcall(setSoundEffectParameter, sound, "reverb", "reverbTime", verbDecay)
 
-			--DEBUG["shots reverb decay"] = verbDecay
-			--DEBUG["ok"] = ok
+		--DEBUG["shots reverb decay"] = verbDecay
+		--DEBUG["ok"] = ok
 		--end
 	end
 end
 
 addEventHandler("onClientPlayerWeaponFire", root, onShotsFired)
+
