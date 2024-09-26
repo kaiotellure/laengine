@@ -17,20 +17,18 @@ struct PSInput
 
 float4 PS_Main(PSInput PS) : SV_Target
 {
-    float4 color = float4(0, 0, 0, 0);
+    float4 color = tex2D(Sampler0, PS.TexCoord);
 
-    for (int x = -RADIUS; x <= RADIUS; x++)
-    {
-        for (int y = -RADIUS; y <= RADIUS; y++)
-        {
-            color += tex2D(Sampler0, PS.TexCoord + float2(x, y) * TexelSize);
-        }
-    }
+	if (length(color.rgb-float3(1.0, 1.0, 0.0)) > .5)
+	{
+		// color.rgb = (color.rgb - 0.5) * 1.5 + 0.5;
+		color.rgb = saturate(color.rgb+float3(.25, 0, .5));
+	}
 
-    return color / pow((RADIUS * 2 + 1), 2);
+    return color;
 }
 
-technique GaussianBlur
+technique Contrast
 {
     pass P0
     {
