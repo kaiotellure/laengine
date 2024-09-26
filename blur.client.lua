@@ -1,4 +1,4 @@
----@type (DxScreenSource|false), (Shader|false)
+---@type (DxScreenSource|false), (DxRenderTarget|false)
 local screenSource, renderTarget
 
 ---@class shaders

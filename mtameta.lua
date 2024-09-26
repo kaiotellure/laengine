@@ -79,7 +79,7 @@ function dxCreateShader(pathORdata, priority, maxDistance, layered, elementTypes
 --- > Important Note: It's enough to set the texture only once if it's a render target
 ---@param theShader Shader the shader element whose parameter is to be changed.
 ---@param parameterName string
----@param ... (Texture|boolean|number) the value to set, when using list of numbers, 16 is the maximum length.
+---@param ... (Material|boolean|number) the value to set, when using list of numbers, 16 is the maximum length.
 ---@return boolean didChange
 function dxSetShaderValue(theShader, parameterName, ...) end
 
@@ -145,6 +145,16 @@ function dxCreateFont(path, size, bold, quality) end
 function dxGetTextSize(text, width, scaleXY, font, wordBreak, colorCoded) end
 -- TODO: add the scaleX and scaleY variation.
 
+---@class DxRenderTarget : Element, Material
+
+-- This function creates a render target element, which is a special type of texture that can be drawn on with the dx functions. Successful render target creation is not guaranteed, and may fail due to hardware or memory limitations.
+-- To see if creation is likely to fail, use dxGetStatus. (When VideoMemoryFreeForMTA is zero, failure is guaranteed.)
+---@param width integer
+---@param height integer
+---@param withAlpha? boolean false; 'false' will turn image's alpha channels to black color
+---@return DxRenderTarget | false # false if the system is unable to create a render target.
+function dxCreateRenderTarget(width, height, withAlpha) end
+
 -- This function retrieves the local screen size according to the resolution they are using.
 ---@return number width, number height
 function guiGetScreenSize() end
@@ -195,7 +205,7 @@ function getCursorPosition() end
 ---@return Sound|false
 function playSound(path, looped, throttled) end
 
----@alias Player : Element
+---@class Player : Element
 
 -- >> Server Function; client also available without player parameter.
 -- This function is used to show or hide a player's cursor.
