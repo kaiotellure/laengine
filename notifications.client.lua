@@ -48,8 +48,12 @@ function JOB_NOTIFY(id, text, duration)
 	playSound("assets/soundfx/blip.mp3")
 
 	local lapsed = 0
-	setTimer(function()
+	notification.timer = setTimer(function()
 		lapsed = lapsed + 1
+
+		DEBUG[id .. "_duration"] = duration
+		DEBUG[id .. "_lapsed"] = lapsed
+
 		if lapsed >= duration then
 			killTimer(sourceTimer)
 			NOTIFICATIONS[id] = nil
@@ -65,6 +69,12 @@ addEvent("job-notification", true)
 addEventHandler("job-notification", resourceRoot, JOB_NOTIFY)
 
 function DELETE_NOTIFICATION(id)
+	local notification = NOTIFICATIONS[id]
+
+	if notification and notification.timer then
+		killTimer(notification.timer)
+	end
+
 	NOTIFICATIONS[id] = nil
 end
 
@@ -178,4 +188,3 @@ local function everyFrame()
 end
 
 addEventHandler("onClientRender", root, everyFrame)
-
