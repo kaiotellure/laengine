@@ -8,19 +8,19 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
 	setWorldSoundEnabled(5, false)
 end)
 
-addEventHandler("onClientPlayerSpawn", getLocalPlayer(), function()
+addEventHandler("onClientPlayerSpawn", localPlayer, function()
 	showChat(false)
 end)
 
 addEventHandler("onClientVehicleEnter", root, function(player)
-	if player == getLocalPlayer() then
+	if player == localPlayer then
 		setPlayerHudComponentVisible("radar", true)
 	end
 end)
 
 addEventHandler("onClientVehicleStartEnter", root, function(player)
-	if player == getLocalPlayer() then
-		local weapon = getPedWeapon(getLocalPlayer())
+	if player == localPlayer then
+		local weapon = getPedWeapon(localPlayer)
 		if weapon >= 9 then
 			setTimer(TIP, 2000, 1, 10, 3)
 		end
@@ -28,13 +28,13 @@ addEventHandler("onClientVehicleStartEnter", root, function(player)
 end)
 
 addEventHandler("onClientVehicleStartExit", root, function(player)
-	if player == getLocalPlayer() then
+	if player == localPlayer then
 		setPlayerHudComponentVisible("radar", false)
 	end
 end)
 
 addCommandHandler("pos", function()
-	local x, y, z = getElementPosition(getLocalPlayer())
+	local x, y, z = getElementPosition(localPlayer)
 	local fmt = x .. ", " .. y .. ", " .. z
 	outputChatBox("Copied: " .. fmt .. "!")
 	setClipboard(fmt)

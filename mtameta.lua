@@ -1,7 +1,6 @@
 ---@meta
 
 ---@class Element
-local Element = {}
 
 ---@type Element the root element
 root = {}
@@ -9,15 +8,18 @@ root = {}
 ---@type Element the root element for the current resource
 resourceRoot = {}
 
+---@type Player player element of the client running the current script.
+localPlayer = {}
+
 -- THE FOLLOWING GLOBALS ARE ONLY AVAILABLE INSIDE AN addEventHandler callback FUNCTION
 
 ---@type string the name of the event that triggered this callback, eg. onClientRender
 eventName = ""
 
----@type Element the element that triggered this event, eg. a Player, Vehicle, Marker. etc...
+---@type Ped the element that triggered this event.
 source = {}
 
----@type Element the element you attached this listener to, eg. root, resourceRoot, a Marker, a Vehicle. etc...
+---@type Element the element this listener is attached to.
 this = {}
 
 ---@alias ClientEvents
@@ -46,13 +48,8 @@ function addEventHandler(eventName, target, callback, propagate, priority) end
 function removeEventHandler(eventName, target, callback) end
 
 ---@class Material
-local Material = {}
-
----@class Texture : Material
-local Texture = {}
 
 ---@class DxScreenSource : Element, Texture
-local DxScreenSource = {}
 
 -- see the params as the quality of the screen and not a section of the screen.
 ---@param width integer
@@ -66,7 +63,6 @@ function dxCreateScreenSource(width, height) end
 function dxUpdateScreenSource(screenSource, resampleNow) end
 
 ---@class Shader : Element, Material
-local Shader = {}
 
 ---@param pathORdata string the path for a HLSL shader file (.fx) or the data buffer of the shader file
 ---@param priority? number if more than one shader is transforming the same world texture the one with highest priority will be used, if duplicates the most recent one will be used.
@@ -90,9 +86,52 @@ function dxSetShaderValue(theShader, parameterName, ...) end
 ---@return integer color
 function tocolor(red, green, blue, alpha) end
 
--- > Important Note: Do not draw image from path. Use a texture created with dxCreateTexture instead to efficiently draw image.
--- > Important Note: For further optimising your DX code, see dxCreateRenderTarget. You should use render target whenever possible, in order to dramatically reduce CPU usage caused by many dxDraw* calls.
--- > Tip: To help prevent edge artifacts when drawing textures, set textureEdge to "clamp" when calling dxCreateTexture.
+---@class Texture : Material
+
+---@alias texture_formats
+---| "argb" ARGB uncompressed 32 bit color (default).
+---| "dxt1" Can take a fraction of a second longer to load, Uses 8 times less video memory than ARGB and can speed up drawing. Quality not as good as ARGB. It supports alpha blending, but it can only be on or off, that is: either 0 or 255.
+---| "dxt3" Can take a fraction of a second longer to load (unless the file is already a DXT3 .dds). Uses 4 times less video memory than ARGB and can speed up drawing. Quality slightly better than DXT1 and supports crisp alpha blending.
+---| "dxt5" Can take a fraction of a second longer to load (unless the file is already a DXT5 .dds). Uses 4 times less video memory than ARGB and can speed up drawing. Quality slightly better than DXT1 and supports smooth alpha blending.
+
+---@alias texture_edges
+---| "wrap" Wrap the texture at the edges (default)
+---| "clamp" Clamp the texture at the edges. This may help avoid edge artifacts.
+---| "mirror" Mirror the texture at the edges.
+
+---@alias texture_types
+---| "2d" Standard texture (default)
+---| "3d" Volume texture
+---| "cube" Cube map
+
+-- This function creates a texture element that can be used in the dxDraw functions.
+---
+-- **_NOTE:_** This function uses significant process RAM, make sure you don't load a lot of textures, because you'll run out of memory and crash MTA on your gaming PC beyond the technical limit of 3.5 GB (weak PC users much earlier). Besides that, don't make the common mistake of causing a memory leak by not destroying textures (causing dxTextures to pile up) when they should no longer display per your script, which causes FPS lag and crashes all over MTA due to so many scripters missing it.
+---
+-- **_TIP:_** It is recommended to pre-convert textures to whatever format you want to load them as. ARGB should be PNG, all other formats are self explanatory. By doing this you can load textures on the fly without any hickups (Note: There might still be some if the user has a slow HHD). See [DirectXTex texconv tool](https://github.com/microsoft/DirectXTex/releases).
+---
+-- **_NOTE:_** It is possible to use dxCreateTexture to load cubemaps and volume textures, but these will only be useable as inputs for a shader. The Microsoft utility [DxTex](http://nightly.mtasa.com/files/shaders/DxTex.zip) can view and change cubemaps and volume textures. DxTex can also convert standard textures into DXT1/3/5 compressed .dds which should reduce file sizes.
+---@param pathORpixels string (.bmp, .dds, .jpg, .png, and .tga images are supported). Image files should ideally have dimensions that are a power of two, to prevent possible blurring. _or_ pixels containing image data. ('plain', 'jpeg' or 'png' pixels can be used here)
+---@param textureFormat? texture_formats argb; string representing the desired texture format.
+---@param mipmaps? boolean true; create a mip-map chain so the texture looks good when drawn at various sizes.
+---@param textureEdge? texture_edges wrap; string representing the desired texture edge handling.
+---@return Texture | false
+function dxCreateTexture(pathORpixels, textureFormat, mipmaps, textureEdge) end
+
+---@param width integer
+---@param height integer
+---@param textureFormat texture_formats
+---@param textureEdge texture_edges
+---@param textureType texture_types
+---@param depth integer
+---@return Texture | false
+function dxCreateTexture(width, height, textureFormat, textureEdge, textureType, depth) end
+
+-- **_NOTE:_** Do not draw image from path. Use a texture created with [dxCreateTexture](lua://dxCreateTexture) instead to efficiently draw image.
+---
+-- **_NOTE:_** For further optimising your DX code, see [dxCreateRenderTarget](lua://dxCreateRenderTarget). You should use render target whenever possible, in order to dramatically reduce CPU usage caused by many dxDraw* calls.
+---
+-- **_TIP:_** To help prevent edge artifacts when drawing textures, set **textureEdge** to `clamp` when calling [dxCreateTexture](lua://dxCreateTexture).
 ---@param x number the absolute x position
 ---@param y number absolute y
 ---@param width number
@@ -114,10 +153,8 @@ function dxGetPixelsSize(pixels) end
 ---@alias fonts ("default"|"default-bold"|"clear"|"arial"|"sans"|"pricedown"|"bankgothic"|"diploma"|"beckett"|"unifont")
 
 ---@class Vec2
-local Vec2 = {}
 
 ---@class DxFont : Element
-local DxFont = {}
 
 ---@alias font_quality "default"|"draft"|"proof"|"nonantialiased"|"antialiased"|"cleartype"|"cleartype_natural"
 
@@ -143,6 +180,7 @@ function dxCreateFont(path, size, bold, quality) end
 ---@param colorCoded? boolean Should we exclude color codes from the width? False will include the hex in the length.
 ---@return number width, number height
 function dxGetTextSize(text, width, scaleXY, font, wordBreak, colorCoded) end
+
 -- TODO: add the scaleX and scaleY variation.
 
 ---@class DxRenderTarget : Element, Material
@@ -160,7 +198,6 @@ function dxCreateRenderTarget(width, height, withAlpha) end
 function guiGetScreenSize() end
 
 ---@class File
-local File = {}
 
 -- > Note: To prevent memory leaks, ensure each successful call to fileOpen has a matching call to fileClose.
 -- > Tip: The file functions should not be used to implement configuration files. It is encouraged to use the XML functions for this instead.
@@ -199,34 +236,231 @@ function getCursorPosition() end
 -- Creates a sound element and plays it immediately after creation for the local player.
 -- > supported audio formats are MP3, WAV, OGG, FLAC, RIFF, MOD, WEBM, XM, IT, S3M and PLS.
 -- > For performance reasons, when using playSound for effects that will be played lots (i.e. weapon fire), it is recommend that you convert your audio file to a one channel (mono) WAV with sample rate of 22050 Hz or less. Also consider adding a limit on how often the effect can be played e.g. once every 50ms.
----@param path string or URL (http://, https:// or ftp://) of the sound file you want to play.
+---@param pathORurl string or URL (http://, https:// or ftp://) of the sound file you want to play.
 ---@param looped? boolean false; whether the sound will be looped. streams can't be looped for obvious reason.
 ---@param throttled? boolean true; the sound will be throttled (i.e. given reduced download bandwidth). To throttle the sound, use true. Sounds will be throttled per default and only for URLs.
 ---@return Sound|false
-function playSound(path, looped, throttled) end
+function playSound(pathORurl, looped, throttled) end
 
----@class Player : Element
+-- Creates a sound element in the GTA world and plays it immediately after creation for the local player. setElementPosition can be used to move the sound element around after it has been created. Remember to use setElementDimension after creating the sound to play it outside of dimension 0.
+---
+-- **_NOTE:_** The only supported audio formats are MP3, WAV, OGG, FLAC, RIFF, MOD, WEBM, XM, IT and S3M.
+---
+-- **_NOTE:_** For performance reasons, when using playSound3D for effects that will be played lots (i.e. weapon fire), it is recommend that you convert your audio file to a one channel (mono) WAV with sample rate of 22050 Hz or less. Also consider adding a limit on how often the effect can be played e.g. once every 50ms.
+---@param pathORurl string filepath, url or raw data of the sound you want to play.
+---@param x number
+---@param y number
+---@param z number
+---@param looped? boolean whether the sound will be looped.
+---@param throttled? boolean whether the sound will be throttled (i.e. given reduced download bandwidth).
+---@return Sound | false
+function playSound3D(pathORurl, x, y, z, looped, throttled) end
 
--- >> Server Function; client also available without player parameter.
+-- Sets a custom sound max distance at which the sound stops.
+---@param sound Sound
+---@param distance integer the default value for this is 20
+---@return boolean success
+function setSoundMaxDistance(sound, distance) end
+
+---@class Ped : Element
+
+-- Returns the world position of the muzzle of the weapon that a ped is currently carrying. The weapon muzzle is the end of the gun barrel where the bullets/rockets/... come out.
+---
+-- **_NOTE:_** The position may not be accurate if the ped is off screen.
+---@param ped Ped the ped whose weapon muzzle position to retrieve.
+---@return (number|false) x, number y, number z
+function getPedWeaponMuzzlePosition(ped) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function tells you which weapon type is in a certain [weapon slot](https://wiki.multitheftauto.com/wiki/Weapon) of a ped.
+---
+-- **_NOTE:_** It should be noted that if a ped runs out of ammo for a weapon, it will still return the ID of that weapon in the slot (even if it appears as if the ped does not have a weapon at all), though [getPedTotalAmmo](lua://getPedTotalAmmo) will return 0. Therefore, [getPedTotalAmmo](lua://getPedTotalAmmo) should be used in conjunction with [getPedWeapon](lua://getPedWeapon) in order to check if a ped has a weapon.
+---@param ped Ped
+---@param slot? integer current;
+---@return integer id the type of the weapon the ped has in the specified slot. If the slot is empty, it returns 0.
+function getPedWeapon(ped, slot) end
+
+---@class Player : Ped
+
+-- 💻 Client Function
+---
+-- This function gets the player element of the client running the current script.
+---
+-- **_NOTE:_** You should use predefined variable `localPlayer` instead of typing getLocalPlayer() for better readability.
+---@return Player
+function getLocalPlayer() end
+
+-- 💻 Client and 🖥 Server Function
+---
 -- This function is used to show or hide a player's cursor.
--- > Note: Be aware of that if showCursor enbaled by a resource you can't disabled it from a different ressource showCursor(false) will not works, in order to make it works, disable it from the original resource that enabled it or use export
----@param player Player
+---
+-- **_NOTE:_** Be aware of that if showCursor enbaled by a resource you can't disabled it from a different ressource showCursor(false) will not works, in order to make it works, disable it from the original resource that enabled it or use export
 ---@param show boolean
 ---@param toggleControls? boolean true; whether to disable controls whilst the cursor is showing. true implies controls are disabled, false implies controls remain enabled.
 ---@return boolean
-function showCursor(player, show, toggleControls) end
-
--- >> Client Function; server also available with player parameter.
--- This function is used to show or hide a player's cursor.
--- > Note: Be aware of that if showCursor enbaled by a resource you can't disabled it from a different ressource showCursor(false) will not works, in order to make it works, disable it from the original resource that enabled it or use export
----@param show boolean
----@param toggleControls? boolean true; whether to disable controls whilst the cursor is showing. true implies controls are disabled, false implies controls remain enabled.
----@return boolean
+---@overload fun(player: Player, show: boolean, toggleControls?: boolean)
 function showCursor(show, toggleControls) end
 
--- >> Client Function
+-- 💻 Client and 🖥 Server (server needs the player param first)
+---
+-- This function is used to show or hide the player's chat.
+---@param show boolean
+---@param inputBlocked? boolean whether chat input is blocked/hidden, regardless of chat visibility.
+---@return boolean success true if the player's chat was shown or hidden successfully, false otherwise.
+---@overload fun(player: Player, show: boolean, inputBlocked?: boolean): boolean
+function showChat(show, inputBlocked) end
+
+-- 💻 Client Function
+---
 -- This function sets the current position of the mouse cursor.
 ---@param x integer x absolute position
 ---@param y integer y absolute position
 ---@return boolean
 function setCursorPosition(x, y) end
+
+---@alias hud_component "all"|"ammo"|"area_name"|"armour"|"breath"|"clock"|"health"|"money"|"radar"|"vehicle_name"|"weapon"|"radio"|"wanted"|"crosshair"
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function will show or hide a part of the player's HUD.
+---@param component hud_component component you wish to show or hide.
+---@param show boolean if the component should be shown (true) or hidden (false).
+---@return boolean success
+function setPlayerHudComponentVisible(component, show) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function will show or hide a part of the player's HUD.
+---@param player Player player element for which you wish to show/hide a HUD component.
+---@param component hud_component component you wish to show or hide.
+---@param show boolean if the component should be shown (true) or hidden (false).
+---@return boolean success
+function setPlayerHudComponentVisible(player, component, show) end
+
+-- 💻 Client Function
+---
+-- This function allows you to disable some background sound effects. See also: [setWorldSoundEnabled](lua://setWorldSoundEnabled).
+---@param type "gunfire"|"general" type of ambient sound to toggle.
+---@param enabled boolean on or off
+---@return boolean success
+function setAmbientSoundEnabled(type, enabled) end
+
+-- 💻 Client Function
+---
+-- This function allows you to disable world sounds. A world sound is a sound effect which has not been caused by [playSound](lua://playSound) or [playSound3D](lua://playSound3D).
+---@param group integer the world sound group.
+---@param index? integer -1; index of a individual sound within the group.
+---@param enabled boolean
+---@param immediate? boolean false; if set to true will cancel the sound if it's already playing. This parameter only works for stopping the sound.
+---@return boolean success
+---@overload fun(group: integer, enabled: boolean): boolean
+function setWorldSoundEnabled(group, index, enabled, immediate) end
+
+---@class Timer
+
+-- 💻 Client and 🖥 Server Function
+---
+-- **_NOTE:_** The speed at which a client side timer runs can be completely unreliable if a client is maliciously modifying their operating system speed, timers could run much faster or slower.
+---
+-- **_NOTE:_** Writing the following code can cause performance issues. Use `onClientPreRender` event instead.
+--- ```lua
+--- setTimer(theFunction, 0, 0)
+--- ```
+-- This function allows you to trigger a function after a number of milliseconds have elapsed. You can call one of your own functions or a built-in function. For example, you could set a timer to spawn a player after a number of seconds have elapsed.
+-- Once a timer has finished repeating, it no longer exists.
+-- The minimum accepted interval is 0ms.
+-- Multi Theft Auto guarantees that the timer will be triggered after at least the interval you specify. The resolution of the timer is tied to the frame rate (server side and client-side). All the overdue timers are triggered at a single point each frame. This means that if, for example, the player is running at 30 frames per second, then two timers specified to occur after 100ms and 110ms would more than likely occur during the same frame, as the difference in time between the two timers (10ms) is less than half the length of the frame (33ms). As with most timers provided by other languages, you shouldn't rely on the timer triggering at an exact point in the future.
+---@param callback fun(...)
+---@param interval integer milliseconds that should elapse before the function is called. The minimum is 0 ms; 1000 milliseconds = 1 second)
+---@param times integer number of times you want the timer to execute, or 0 for infinite repetitions.
+---@param ... any arguments you wish to pass to the function can be listed here. Note that any tables you want to pass will get cloned, whereas metatables and functions/function references in that passed table will get lost. Also changes you make in the original table before the function gets called won't get transferred.
+---@return Timer | false
+function setTimer(callback, interval, times, ...) end
+
+---@class Console : Element
+
+-- 💻 Client and 🖥 Server Function
+---
+-- **_NOTE:_** Do NOT use the same name for your handler function as the command name, as this can lead to confusion if multiple handler functions are used. Use a name that describes your handler's purpose more specifically.
+---
+-- **_RESERVED:_** You can't use "check", "list", "test" and "help" as a command name.
+---
+-- This function will attach a scripting function (handler) to a console command, so that whenever a player or administrator uses the command the function is called.
+-- Multiple command handlers can be attached to a single command, and they will be called in the order that the handlers were attached. Equally, multiple commands can be handled by a single function, and the `commandName` parameter used to decide the course of action.
+-- This can be triggered from the player's console or directly from the chat box by prefixing the message with a forward slash (/). For server side handlers, the server admin is also able to trigger these directly from the server's console in the same way as they are triggered from a player's console. 
+---@param name string
+---@param handler fun(source: Player|Console|false, command: string, ...: string)
+---@param restricted? boolean false; whether or not this command should be restricted by default.
+---@param caseSensitive? boolean true; if the command handler will ignore the case for this command name.
+---@overload fun(name: string, handler: fun(command: string, ...: string), caseSensitive?: boolean)
+function addCommandHandler(name, handler, restricted, caseSensitive) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- Allows you to retrieve the position coordinates of an element.
+---@param element Element
+---@return number x, number y, number z
+function getElementPosition(element) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This outputs the specified text string to the chatbox. It can be specified as a message to certain player(s) or all players.
+---
+-- It can optionally allow you to embed color changes into the string by setting the colored to true. This allows:
+-- ```lua
+-- outputChatBox("#FF0000Hello #00FF00World", root, 255, 255, 255, true)
+-- ```
+-- This will display as: ![#f03c15](https://placehold.co/15x15/f03c15/f03c15.png) `Hello` ![#c5f015](https://placehold.co/15x15/c5f015/c5f015.png) `World` (the words)
+---
+-- **_NOTE:_** The #RRGGBB format must contain capital letters a-f is not acceptable but A-F is. Default RGB values in this format are: '#E7D9B0'.
+---@param text string text string that you wish to send to the chat window. If more than 256 characters it will not be showed in chat.
+---@param targets? Element[] | Element root; specifies who the chat is visible to. Any players in this element will see the chat message. See [visibility](https://wiki.multitheftauto.com/wiki/Visibility).
+---@param r? integer 231; Amount of red in the color of the text.
+---@param g? integer 217; Amount of green in the color of the text.
+---@param b? integer 176; Amount of blue in the color of the text.
+---@param colored? boolean false; determining whether or not '#RRGGBB' tags should be used.
+---@overload fun(text: string, r?: integer, g?: integer, b?: integer, colored?: boolean): boolean
+---@return boolean success
+function outputChatBox(text, targets, r, g, b, colored) end
+
+-- 💻 Client Function
+---
+-- This function sets the players clipboard text (what appears when you paste with CTRL + V)
+---@param text string
+---@return boolean success
+function setClipboard(text) end
+
+---@alias radio_ids
+---| 0 Radio OFF
+---| 1 Playback FM
+---| 2 K-Rose
+---| 3 K-DST
+---| 4 Bounce FM
+---| 5 SF-UR
+---| 6 Radio Los Santos
+---| 7 Radio X
+---| 8 CSR 103.9
+---| 9 K-Jah West
+---| 10 Master Sounds 98.3
+---| 11 WCTR
+---| 12 User Track Player
+
+-- 💻 Client Function
+---
+-- This function sets the heard radio channel, even while not in a vehicle.
+---
+-- **_NOTE:_** This function sometimes doesn't work when setting the radio channel to another different from the current one due to unknown reasons. If you experience this issue, simply add setRadioChannel(0) at the beginning of the script, outside any function.
+---@param id radio_ids ID of the radio station you want to play.
+---@return boolean success
+function setRadioChannel(id) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function is used to stop the automatic internal handling of events, for example this can be used to prevent an item being given to a player when they walk over a pickup, by canceling the `onPickupUse` event.
+---
+-- cancelEvent does not have an effect on all events, see the individual event's pages for information on what happens when the event is canceled. cancelEvent does not stop further event handlers from being called, as the order of event handlers being called is undefined in many cases. Instead, you can see if the currently active event has been cancelled using [wasEventCancelled](lua://wasEventCancelled).
+---@param cancel? boolean
+---@param reason? string
+---@return true
+function cancelEvent(cancel, reason) end

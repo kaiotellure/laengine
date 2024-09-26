@@ -2,10 +2,14 @@ local SOUND_MAX_DISTANCE = 300
 
 local function onShotsFired(weaponId, _, ammoInClip)
 	local mx, my, mz = getPedWeaponMuzzlePosition(source)
+	assert(mx, "could not retrieve ped weapon muzzle position.")
+
 	local sounds = WEAPONS[weaponId]
 
 	if sounds and sounds.fire then
 		local sound = playSound3D(sounds.fire, mx, my, mz)
+		assert(sound, "sound could not be created.")
+
 		setSoundMaxDistance(sound, SOUND_MAX_DISTANCE)
 
 		--local x, y, z = getElementPosition(getLocalPlayer())
