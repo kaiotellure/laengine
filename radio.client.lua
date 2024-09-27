@@ -3,9 +3,9 @@ local RADIOS = {}
 addEvent("radio-sync", true)
 addEventHandler("radio-sync", resourceRoot, function(target, index, uptime)
 
-	local attached_sound = get_attached_3d_sound(target)
+	-- local attached_sound = get_attached_3d_sound(target)
 
-	deattach_3d_sound(target)
+	DEATTACH_3D_SOUND(target)
 	if index == 0 then return end
 
 	local station = RADIO_STATIONS[index]
@@ -15,15 +15,14 @@ addEventHandler("radio-sync", resourceRoot, function(target, index, uptime)
 		local inside = getPedOccupiedVehicle(localPlayer) == target
 
 		if not inside then
-			apply_sound_ambience_fx(sound)
+			APPLY_AMBIENCE_FX(sound)
 		end
 
 		setElementData(sound, "station-name", station.name)
-		setElementData(sound, "station-index", index)
+		-- setElementData(sound, "station-index", index)
 
-		-- disabled as sound3d takes care of this for realistic effects
 		setSoundPosition(sound, uptime % getSoundLength(sound))
-		attach_3d_sound(sound, target)
+		ATTACH_3D_SOUND(sound, target)
 	end)
 end)
 
@@ -56,7 +55,7 @@ local function bindRadioControls(vehicle, getCurrentName)
 	addEventHandler("onClientVehicleExplode", vehicle, onExplode)
 
 	local function enteredIntoAnotherVehicle(player)
-		if player == getLocalPlayer() and source ~= vehicle then
+		if player == localPlayer and source ~= vehicle then
 			onExplode()
 			removeEventHandler("onClientVehicleEnter", root, enteredIntoAnotherVehicle)
 		end
@@ -91,33 +90,38 @@ function TIP(chance, index)
 end
 
 addEventHandler("onClientVehicleEnter", root, function(player, seat)
-	if player == getLocalPlayer() then
-		local vehicle = source
-		local sound = get_attached_3d_sound(vehicle)
+	if player == localPlayer then
+		local vehicle = source --[[@as Vehicle]]
+		local sound = GET_ATTACHED_3D_SOUND(vehicle)
 
 		-- only front seats can control radio
 		if seat < 2 then
 			bindRadioControls(source, function()
-				local sound = get_attached_3d_sound(vehicle)
+				local sound = GET_ATTACHED_3D_SOUND(vehicle)
+
 				if sound then
 					return getElementData(sound, "station-name")
 				end
+
 				return "DESLIGADO"
 			end)
 		end
 
 		if sound then
-			remove_sound_ambience_fx(sound)
+			REMOVE_AMBIENCE_FX(sound)
 		end
+
 		TIP(3, 1) -- display radio tip notification, chance = 1/3
 	end
 end)
 
 addEventHandler("onClientVehicleStartExit", root, function(player, seat)
-	if player == getLocalPlayer() then
-		local sound = get_attached_3d_sound(source)
+	if player == localPlayer then
+		local vehicle = source --[[@as Vehicle]]
+		local sound = GET_ATTACHED_3D_SOUND(vehicle)
+
 		if sound then
-			apply_sound_ambience_fx(sound)
+			APPLY_AMBIENCE_FX(sound)
 			-- display doors tip notification for front
 			-- seat seaters only, chance = 1/15
 			if seat < 2 then

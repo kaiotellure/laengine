@@ -24,6 +24,33 @@ source = {}
 ---@type Element the element this listener is attached to.
 this = {}
 
+-- 💻 Client and 🖥 Server Function
+---
+-- This function allows you to register a custom event. Custom events function exactly like the built-in events. See event system for more information on the event system.
+---@param name string
+---@param allowRemote? boolean false; whether this event can be called remotely using [triggerClientEvent](lua://triggerClientEvent) / [triggerServerEvent](lua://triggerServerEvent) or not.
+---@return boolean success true if the event was added successfully, false if the event was already added.
+function addEvent(name, allowRemote) end
+
+-- 💻 Client Function
+---
+-- This function triggers an event previously registered on the server. This is the primary means of passing information between the client and the server. Servers have a similar triggerClientEvent function that can do the reverse. You can treat this function as if it was an asynchronous function call, using triggerClientEvent to pass back any returned information if necessary.
+---
+-- Almost any data types can be passed as expected, including elements and complex nested tables. Non-element MTA data types like xmlNodes or resource pointers will not be able to be passed as they do not necessarily have a valid representation on the client. Elements of the Vector or Matrix classes cannot be passed!
+---
+-- Events are sent reliably, so the server will receive them, but there may be (but shouldn't be) a significant delay before they are received. You should take this into account when using them.
+---
+-- Keep in mind the bandwidth issues when using events - don't pass a large list of arguments unless you really need to. It is marginally more efficient to pass one large event than two smaller ones.
+---
+-- **_IMPORTANT:_** You should use the global variable client server-side instead of passing the localPlayer by parameter or source. Otherwise event faking (passing another player instead of the localPlayer) would be possible. For more information see: Script security article.
+---
+-- **_SAVE SERVER CPU:_** To save server CPU, you should avoid setting source to the root element where possible - it should be used as a last resort (rather questionable thing to do, limited to very specific tasks, if any). Using localPlayer is preferred and highly advisable. resourceRoot can also be used as alternative choice, if addEventHandler is bound to root element, or to resourceRoot when there is need to restrict event to single certain resource (although cheater could still trigger it from different resource, by using getResourceRootElement and passing respective resource root element)
+---@param event string
+---@param source Element
+---@param ... Element | string | number | table
+---@return boolean success false if a client side element was a parameter.
+function triggerServerEvent(event, source, ...) end
+
 ---@alias ClientEvents
 ---| "onClientRender" # triggers on every screen update, aka: frame
 ---| "onClientResourceStart" # triggers when the resource is turned on the client side
@@ -442,6 +469,24 @@ function setSoundEffectParameter(speaker, fxname, fxparam, value) end
 ---@param fxname "parameq"
 ---@param fxparam parameq_params
 function setSoundEffectParameter(speaker, fxname, fxparam, value) end
+
+-- 💻 Client Function
+---
+-- This function is used to change the seek position of the specified sound element. Use a player element to control a players voice with this function.
+---
+-- **_NOTE:_** To set position of a remote audio file, you must pause the sound within an onClientSoundStream event after creation, set the sound position and then unpause it again. The sound can also not be throttled (see playSound arguments)
+---@param speaker Sound | Player
+---@param position number the new seek position of the sound element in seconds.
+---@return boolean success
+function setSoundPosition(speaker, position) end
+
+-- 💻 Client Function
+---
+-- This function is used to return the playback length of the specified sound element. If the element is a player, this function will use the players voice.
+---
+---@param speaker Sound | Player
+---@return number length playback length of the sound element in seconds.
+function getSoundLength(speaker) end
 
 ---@class Ped : Element
 
@@ -904,6 +949,14 @@ function getPlayerMoney(player) end
 ---@return boolean success
 function setElementData(element, key, value, sync) end
 
+-- 💻 Client and 🖥 Server Function
+---
+-- This function retrieves element data attached to an element under a certain key.
+---@param element Element the element with data you want to retrieve.
+---@param key string name of the element data entry you want to retrieve. (Maximum 31 characters.)
+---@param inherit? boolean true; whether or not the function should go up the hierarchy to find the requested key in case the specified element doesn't have it.
+---@return number | string | table | Element
+function getElementData(element, key, inherit) end
 
 -- 💻 Client and 🖥 Server Function
 ---
@@ -917,3 +970,189 @@ function setElementData(element, key, value, sync) end
 ---@param element Element
 ---@return boolean success Returns true if the element was destroyed successfully, false if either the element passed to it was invalid or it could not be destroyed for some other reason (for example, clientside destroyElement can't destroy serverside elements).
 function destroyElement(element) end
+
+---@alias keys_and_controls
+---| "mouse1"
+---| "mouse2"
+---| "mouse3"
+---| "mouse4"
+---| "mouse5"
+---| "mouse_wheel_up"
+---| "mouse_wheel_down"
+---| "arrow_l"
+---| "arrow_u"
+---| "arrow_r"
+---| "arrow_d"
+---| "0"
+---| "1"
+---| "2"
+---| "3"
+---| "4"
+---| "5"
+---| "6"
+---| "7"
+---| "8"
+---| "9"
+---| "a"
+---| "b"
+---| "c"
+---| "d"
+---| "e"
+---| "f"
+---| "g"
+---| "h"
+---| "i"
+---| "j"
+---| "k"
+---| "l"
+---| "m"
+---| "n"
+---| "o"
+---| "p"
+---| "q"
+---| "r"
+---| "s"
+---| "t"
+---| "u"
+---| "v"
+---| "w"
+---| "x"
+---| "y"
+---| "z"
+---| "num_0"
+---| "num_1"
+---| "num_2"
+---| "num_3"
+---| "num_4"
+---| "num_5"
+---| "num_6"
+---| "num_7"
+---| "num_8"
+---| "num_9"
+---| "num_mul"
+---| "num_add"
+---| "num_sep"
+---| "num_sub"
+---| "num_div"
+---| "num_dec"
+---| "num_enter"
+---| "F1"
+---| "F2"
+---| "F3"
+---| "F4"
+---| "F5"
+---| "F6"
+---| "F7"
+---| "F8"
+---| "F9"
+---| "F10"
+---| "F11"
+---| "F12"
+---| "escape"
+---| "backspace"
+---| "tab"
+---| "lalt"
+---| "ralt"
+---| "enter"
+---| "space"
+---| "pgup"
+---| "pgdn"
+---| "end"
+---| "home"
+---| "insert"
+---| "delete"
+---| "lshift"
+---| "rshift"
+---| "lctrl"
+---| "rctrl"
+---| "["
+---| "]"
+---| "pause"
+---| "capslock"
+---| "scroll"
+---| ";"
+---| ","
+---| "-"
+---| "."
+---| "/"
+---| "#"
+---| "\"
+---| "="
+---| "fire"
+---| "aim_weapon"
+---| "next_weapon"
+---| "previous_weapon"
+---| "forwards"
+---| "backwards"
+---| "left"
+---| "right"
+---| "zoom_in"
+---| "zoom_out"
+---| "change_camera"
+---| "jump"
+---| "sprint"
+---| "look_behind"
+---| "crouch"
+---| "action"
+---| "walk"
+---| "conversation_yes"
+---| "conversation_no"
+---| "group_control_forwards"
+---| "group_control_back"
+---| "enter_exit"
+---| "vehicle_fire"
+---| "vehicle_secondary_fire"
+---| "vehicle_left"
+---| "vehicle_right"
+---| "steer_forward"
+---| "steer_back"
+---| "accelerate"
+---| "brake_reverse"
+---| "radio_next"
+---| "radio_previous"
+---| "radio_user_track_skip"
+---| "horn"
+---| "sub_mission"
+---| "handbrake"
+---| "vehicle_look_left"
+---| "vehicle_look_right"
+---| "vehicle_look_behind"
+---| "vehicle_mouse_look"
+---| "special_control_left"
+---| "special_control_right"
+---| "special_control_down"
+---| "special_control_up"
+
+-- 💻 Client and 🖥 Server Function
+---
+-- Binds a player's key to a handler function or command, which will be called when the key is pressed.
+---
+-- **_NOTE:_** Using escape key or F8 key will always return false. Use onClientKey event instead.
+---
+-- **_NOTE:_** Handler function won't be triggered while focused in CEGUI editbox. You can use guiSetInputMode or onClientKey in order to fix that.
+---
+---@param key keys_and_controls
+---@param state "up" | "down" | "both"
+---@param callback fun(key: keys_and_controls, state: "up" | "down", ...) | string
+---@param ... any
+---@return boolean success
+---@overload fun(player: Player, key: keys_and_controls, state: "up" | "down" | "both", callback: fun(key: keys_and_controls, state: "up" | "down", ...) | string, ...: any): boolean
+function bindKey(key, state, callback, ...) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- Removes an existing key bind from the specified player.
+---
+-- **_NOTE:_** unbindKey will only work on binds that were added by the same resource.
+---
+-- **_NOTE:_** unbindKey on the server may return true on failure.
+---
+-- **_ISSUE:_** If you call unbindKey twice, it will break other scripts: [Issue 497](https://github.com/multitheftauto/mtasa-blue/issues/497)
+---@param key keys_and_controls
+---@param state "up" | "down" | "both"
+---@param callback fun(key: keys_and_controls, state: "up" | "down", ...) | string
+---@return boolean success
+---@overload fun(player: Player, key: keys_and_controls, state: "up" | "down" | "both", callback: fun(key: keys_and_controls, state: "up" | "down", ...) | string): boolean
+---@overload fun(player: Player, key: keys_and_controls): boolean
+---@overload fun(key: keys_and_controls): boolean
+function unbindKey(key, state, callback) end
