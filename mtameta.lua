@@ -16,7 +16,7 @@ localPlayer = {}
 ---@type string the name of the event that triggered this callback, eg. onClientRender
 eventName = ""
 
----@type Ped the element that triggered this event.
+---@type Element the element that triggered this event.
 source = {}
 
 ---@type Element the element this listener is attached to.
@@ -242,7 +242,7 @@ function getCursorPosition() end
 ---@return Sound|false
 function playSound(pathORurl, looped, throttled) end
 
--- Creates a sound element in the GTA world and plays it immediately after creation for the local player. setElementPosition can be used to move the sound element around after it has been created. Remember to use setElementDimension after creating the sound to play it outside of dimension 0.
+-- Creates a sound element in the GTA world and plays it immediately after creation for the local player. [setElementPosition](lua://setElementPosition) can be used to move the sound element around after it has been created. Remember to use setElementDimension after creating the sound to play it outside of dimension 0.
 ---
 -- **_NOTE:_** The only supported audio formats are MP3, WAV, OGG, FLAC, RIFF, MOD, WEBM, XM, IT and S3M.
 ---
@@ -390,10 +390,11 @@ function setTimer(callback, interval, times, ...) end
 -- Multiple command handlers can be attached to a single command, and they will be called in the order that the handlers were attached. Equally, multiple commands can be handled by a single function, and the `commandName` parameter used to decide the course of action.
 -- This can be triggered from the player's console or directly from the chat box by prefixing the message with a forward slash (/). For server side handlers, the server admin is also able to trigger these directly from the server's console in the same way as they are triggered from a player's console. 
 ---@param name string
----@param handler fun(source: Player|Console|false, command: string, ...: string)
+---@param handler fun(source: Player|Console, command: string, ...: string)
 ---@param restricted? boolean false; whether or not this command should be restricted by default.
 ---@param caseSensitive? boolean true; if the command handler will ignore the case for this command name.
----@overload fun(name: string, handler: fun(command: string, ...: string), caseSensitive?: boolean)
+---@overload fun(name: string, handler: fun(command: string, ...: string), caseSensitive?: boolean): boolean
+---@return boolean success
 function addCommandHandler(name, handler, restricted, caseSensitive) end
 
 -- 💻 Client and 🖥 Server Function
@@ -464,3 +465,220 @@ function setRadioChannel(id) end
 ---@param reason? string
 ---@return true
 function cancelEvent(cancel, reason) end
+
+-- 💻 Client and 🖥 Server Function
+---
+---@param element Element
+---@return all_elements type
+function getElementType(element) end
+
+---@class Vehicle : Element
+
+-- 💻 Client and 🖥 Server Function
+---
+-- **_NOTE:_** Vehicles (and other elements) created client-side are only seen by the client that created them, aren't synced and players cannot enter them. They are essentially for display only.
+---
+-- **_LAG:_** Due to how GTA works, creating a lot of vehicles in the same place will cause lag. The more geometries and unique textures has model the bigger the lag is. Even a lot of default vehicles will cause lag if in the same place.
+---
+-- **_USING TRAINS:_** Trains are created using the [createVehicle](lua://createVehicle) function. They are placed at the nearest point of the GTASA train pathing (they usually are railroad tracks) from their spawning point.
+---
+-- Its worth nothing that the position of the vehicle is the center point of the vehicle, not its base. As such, you need to ensure that the z value (vertical axis) is some height above the ground. You can find the exact height using the client side function [getElementDistanceFromCentreOfMassToBaseOfModel](lua://getElementDistanceFromCentreOfMassToBaseOfModel), or you can estimate it yourself and just spawn the vehicle so it drops to the ground.
+---@param model 411|415|integer see all [vehicle ids](https://wiki.multitheftauto.com/wiki/Vehicle_IDs).
+---@param x number
+---@param y number
+---@param z number
+---@param rx? number A floating point number representing the rotation about the X axis in degrees.
+---@param ry? number A floating point number representing the rotation about the Y axis in degrees.
+---@param rz? number A floating point number representing the rotation about the Z axis in degrees.
+---@param numberplate? string string that will go on the number plate of the vehicle (max 8 characters).
+---@param variant1? integer see [vehicle variants](https://wiki.multitheftauto.com/wiki/Vehicle_variants).
+---@param variant2? integer see [vehicle variants](https://wiki.multitheftauto.com/wiki/Vehicle_variants).
+---@param synced? boolean server-only; whether or not the vehicle will be synced. Disabling the sync might be useful for frozen or static vehicles to increase the server performance.
+---@return Vehicle vehicle the vehicle or false if the arguments are incorrect, or if the vehicle limit of 65535 is exceeded.
+function createVehicle(model, x, y, z, rx, ry, rz, numberplate, variant1, variant2, synced) end
+
+---@alias vehicle_seats
+---| 0 Driver; Front-Left
+---| 1 Front-Right
+---| 2 Rear-Left
+---| 3 Rear-Right
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function is used to warp or force a ped into a vehicle. There are no animations involved when this happens.
+---
+-- **_NOTE:_** If you used [setElementPosition](lua://setElementPosition) to spawn the ped/player, this function will not work and returns false.
+---@param ped Ped ped which you wish to force inside the vehicle.
+---@param vehicle Vehicle vehicle you wish to force the ped into.
+---@param seat? vehicle_seats
+---@return boolean success
+function warpPedIntoVehicle(ped, vehicle, seat) end
+
+---@class Team : Element
+
+-- 🖥 Server Function
+---
+-- This function spawns the player at an arbitrary point on the map.
+---
+-- **_NOTE:_** [setCameraTarget](lua://setCameraTarget) must be used to focus on the player. Also, all players have their camera initially faded out after connect. To ensure that the camera is faded in, please do a [fadeCamera](lua://fadeCamera) after.
+---@param player Player
+---@param x number
+---@param y number
+---@param z number
+---@param rotation? integer 0; in degrees.
+---@param skin? integer 0; see all [skins](https://wiki.multitheftauto.com/wiki/Character_Skins).
+---@param interior? integer 0; see all [interiors](https://wiki.multitheftauto.com/wiki/Interior_IDs).
+---@param dimension? integer 0; multiverse id, [learn more](https://wiki.multitheftauto.com/wiki/Dimension).
+---@param team? Team getPlayerTeam(player);
+---@return boolean success
+function spawnPlayer(player, x, y, z, rotation, skin, interior, dimension, team) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function will fade a player's camera to a color or back to normal over a specified time period. This will also affect the sound volume for the player (50% faded = 50% volume, full fade = no sound). For clientside scripts you can perform 2 fade ins or fade outs in a row, but for serverside scripts you must use one then the other.
+---
+-- **_NOTE:_** The speed of the effect depends directly on the current gamespeed.
+---@param player Player whose camera you wish to fade.
+---@param fadein boolean should the camera be faded in or out? Pass true to fade the camera in, false to fade it out to a color.
+---@param time? number 1.0; number of seconds it should take to fade.
+---@param r? integer 0; amount of red in the color that the camera fades out to (0 - 255). Not required for fading in.
+---@param g? integer 0; amount of green in the color that the camera fades out to (0 - 255). Not required for fading in.
+---@param b? integer 0; amount of blue in the color that the camera fades out to (0 - 255). Not required for fading in.
+---@return boolean success
+---@overload fun(fadein: boolean, time?: number, r?: integer, g?: integer, b?: integer): boolean
+function fadeCamera(player, fadein, time, r, g, b) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function allows you to set a player's camera to follow other elements instead.
+---@param player Player whose camera you wish to modify.
+---@param target? Player | Ped | Vehicle element who you want the camera to follow. If none is specified, the camera will target the player.
+---@return boolean success
+---@overload fun(target: Player | Ped | Vehicle): boolean
+---@overload fun(x: number, y: number, z: number): boolean
+function setCameraTarget(player, target) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function sets the current GTA time to the given time. 
+---@param hour integer hour of the new time (range 0-23).
+---@param minute integer minute of the new time (range 0-59).
+---@return boolean success
+function setTime(hour, minute) end
+
+---@alias all_elements
+---| "player"
+---| "ped"
+---| "water" water polygon
+---| "sound"
+---| "vehicle"
+---| "object"
+---| "pickup"
+---| "marker"
+---| "colshape" collision shape
+---| "blip"
+---| "radararea"
+---| "team"
+---| "spawnpoint"
+---| "console" The Server Console
+---| "projectile" clientside projectile
+---| "effect" clientside effect
+---| "light" clientside light
+---| "searchlight" clientside searchlight
+---| "shader"
+---| "texture"
+---| "gui-window" A GUI window (theres others like this for other GUI types)
+---| "building" (client side only)
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function is used to retrieve a list of all elements of the specified type. This can be useful, as it disregards where in the element tree it is. It can be used with either the built in types (listed below) or with any custom type used in a .map file. For example, if there is an element of type "flag" (e.g. <flag />) in the .map file, the using "flag" as the type argument would find it.
+---@param type all_elements
+---@param start_at? Element root; The element the search should start at. Children of this element are searched, siblings or parents will not be found. By default, this is the root element which should suit most uses.
+---@param streamed_in? boolean false; client-only; If true, function will only return elements that are streamed in.
+---@return Element[] # Returns a table containing all the elements of the specified type. Returns an empty table if there are no elements of the specified type. Returns false if the string specified is invalid (or not a string).
+function getElementsByType(type, start_at, streamed_in) end
+
+---@class Account
+
+-- 🖥 Server Function
+---
+-- **_NOTE:_** You **MUST** use the standard `module.key` naming for your keys. This prevents collisions between different scripts.
+---
+-- This function sets a string to be stored in an account. This can then be retrieved using [getAccountData](lua://getAccountData). Data stored as account data is persistent across user's sessions and maps, unless they are logged into a guest account. Even if logged into a guest account, account data can be useful as a way to store a reference to your own account system, though it's persistence is equivalent to that of using setElementData on the player's element.
+---@param account Account you wish to set the data to.
+---@param key string key under which the data is stored.
+---@param value string | integer value you wish to store. Set to false to remove the data. **_NOTE:_** you cannot store tables as values, but you can use [toJSON](lua://toJSON) strings.
+---@return boolean success
+function setAccountData(account, key, value) end
+
+-- 🖥 Server Function
+---
+-- **_NOTE:_** You **MUST** use the standard `module.key` naming for your keys. This prevents collisions between different scripts.
+---
+-- This function retrieves a string that has been stored using [setAccountData](lua://setAccountData). Data stored as account data is persistent across user's sessions and maps, unless they are logged into a guest account.
+---@param account Account you wish to retrieve the data from.
+---@param key string key under which the data is stored.
+---@return string | false # a string containing the stored data or false if no data was stored under that key.
+function getAccountData(account, key) end
+
+-- 🖥 Server Function
+---
+-- This function retrieves the ID of an account.
+---@param account Account
+---@return integer | false id # false if the account does not exist or an invalid argument was passed to the function.
+function getAccountID(account) end
+
+-- 🖥 Server Function
+---
+-- This function returns the specified player's account object.
+---@param player Player
+---@return Account | false account # false if the player passed to the function is invalid.
+function getPlayerAccount(player) end
+
+-- 🖥 Server Function
+---
+-- This function checks to see if an account is a guest account. A guest account is an account automatically created for a user when they join the server and deleted when they quit or login to another account. Data stored in a guest account is not stored after the player has left the server. As a consequence, this function will check if a player is logged in or not.
+---@param account Account
+---@return boolean is_guest
+function isGuestAccount(account) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- Sets a player's money to a certain value, regardless of current player money. It should be noted that setting negative values does not work and in fact gives the player large amounts of money.
+---
+-- **_NOTE:_** Using this function client side (not recommended) will not change a players money server side.
+---@param player Player
+---@param amount integer
+---@param instant? boolean false; If set to true money will be set instantly without counting up/down like in singleplayer.
+---@return boolean success
+---@overload fun(amount: integer, instant?: boolean): boolean
+function setPlayerMoney(player, amount, instant) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- Returns the amount of money a player currently has.
+---
+-- **_NOTE:_** The amount may vary between the server and client, you shouldn't trust the client side value to always be accurate.
+---@param player Player
+---@return integer money
+function getPlayerMoney(player) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function stores [element data](https://wiki.multitheftauto.com/wiki/Element_data) under a certain key, attached to an element. Element data set using this is then synced with all clients and the server. The data can contain server-created elements, but you should avoid passing data that is not able to be synced such as xmlnodes, acls, aclgroups etc.
+---
+-- As element data is synced to all clients, it can generate a lot of network traffic and be heavy on performance. Events are much more efficient for sending data from a client to the server only, or from the server to a specific client.
+-- Usage of element data should be discouraged where your goal can be achieved with events like above, and tables for storing and retrieving data.
+---
+-- **_TIP:_** A simple and efficient way to make a variable known to the server and clients is to use setElementData on the root element.
+---
+-- **_SECURITY:_** See [Script security](https://wiki.multitheftauto.com/wiki/Script_security) for tips on preventing cheaters when using events and element data.
+---
+-- **_PERFORMANCE:_** For performance reasons, never use setElementData in events that fire often (like `onClientRender`) without further optimization or conditions. In fact, using element data in general, can take such a toll on performance that not using it unless strictly necessary (e.g use alternatives such as storing data in tables) is recommended.
+---@param element Element
+---@param key string key you wish to store the data under. (Maximum 128 characters.)
+---@param value number | string | table | Element
+---@param sync? boolean true; whether or not the data will be synchronized with the clients(server-side variation) or server(client-side variation)
+---@return boolean success
+function setElementData(element, key, value, sync) end

@@ -1,9 +1,16 @@
-addCommandHandler('car', function(player)
+addCommandHandler('car', function(user)
+	if getElementType(user) == "console" then
+		return print("console tried using an in-game only command.")
+	end
+
+	local player = user --[[@as Player]]
 	local x, y, z = getElementPosition(player)
+
 	local vehicle = createVehicle(411, x, y, z)
 	warpPedIntoVehicle(player, vehicle)
 end)
 
+---@param player Player
 local function spawn(player)
 	player = player or source
 	local random_spawn = SPAWNS[math.random(#SPAWNS)]
@@ -18,31 +25,39 @@ end
 
 local function main()
 	setTime(0, 0)
-	local allPlayers = getElementsByType("player")
+	local players = getElementsByType("player")
 
-	for i = 1, #allPlayers do
-		spawn(allPlayers[i])
+	for i = 1, #players do
+		spawn(players[i])
 	end
 
-	-- Spawn player after death
 	addEventHandler("onPlayerWasted", root, function() spawn(source) end)
 
-	addEventHandler("onPlayerLogin", root, function(previousAccount, account)
+	addEventHandler("onPlayerLogin", root, function(_, account)
 		assert(account, "no player account")
+		---@cast account Account
+
+		local player = source --[[@as Player]]
 
 		local savedMoney = getAccountData(account, "engine.money")
-		setPlayerMoney(source, savedMoney or 1000)
-		setElementData(source, "id", getAccountID(account))
+		setPlayerMoney(player, tonumber(savedMoney or 1000))
 
-		spawn(source)
+		local id = getAccountID(account)
+		assert(id, "could not get account id.")
+
+		setElementData(player, "id", id)
+		spawn(player)
 	end)
 	
 	addEventHandler("onPlayerQuit", root, function()
-		local account = getPlayerAccount(source)
+		local player = source --[[@as Player]]
+		
+		local account = getPlayerAccount(player)
 		assert(account, "no player account")
+
 		assert(not isGuestAccount(account), "was a guest account")
 
-		local currentMoney = getPlayerMoney(source)
+		local currentMoney = getPlayerMoney(player)
 		setAccountData(account, "engine.money", currentMoney)
 	end)
 end
