@@ -2,11 +2,12 @@
 
 ---@class Element
 ---@class RootElement : Element
+---@class ResourceRootElement : Element
 
 ---@type RootElement the root element
 root = {}
 
----@type Element the root element for the current resource
+---@type ResourceRootElement the root element for the current resource
 resourceRoot = {}
 
 ---@type Player player element of the client running the current script.
@@ -46,7 +47,7 @@ function addEventHandler(eventName, target, callback, propagate, priority) end
 ---
 -- **_CANCELLING:_** the player will not be logged in.
 ---
--- **_SOURCE:_** The source of this event is the player element that just logged in.
+-- **_SOURCE:_** the [Player](lua://Player) element that just logged in.
 ---@param event "onPlayerLogin"
 ---@param target RootElement | Player
 ---@param callback fun(previous: Account, current: Account)
@@ -64,7 +65,7 @@ function addEventHandler(event, target, callback) end
 ---
 -- **_CANCELLING:_** This event cannot be cancelled.
 ---
----**_SOURCE:_** The source of this event is the player that left the server.
+---**_SOURCE:_** the [Player](lua://Player) that left the server.
 ---@param event "onPlayerQuit"
 ---@param target RootElement | Player
 ---@param callback fun(type: quit_types, reason: string | false, responsable: Player | Console)
@@ -147,10 +148,24 @@ function addEventHandler(event, target, callback) end
 ---
 -- **_CANCELLING:_** non cancellable; no explicit state by the wiki; untested.
 ---
----**_SOURCE:_** The source of this event is the player that died or got killed.
+---**_SOURCE:_** the [Player](lua://Player) that died or got killed.
 ---@param event "onPlayerWasted"
 ---@param target RootElement | Player
 ---@param callback fun(ammo: integer, killer: Player | Ped | Vehicle | Object | false, weapon: weapons | damage_types, bodypart: body_parts, stealth: boolean, animGroup: integer, animID: integer)
+function addEventHandler(event, target, callback) end
+
+---@class Resource
+
+-- 🖥 Server Event
+---
+-- This event is triggered when a resource is started.
+---
+-- **_CANCELLING:_** the resource starting is aborted and is stopped again.
+---
+---**_SOURCE:_** the [resource root element](lua://ResourceRootElement) in the resource that started.
+---@param event "onResourceStart"
+---@param target RootElement | ResourceRootElement
+---@param callback fun(resource: Resource)
 function addEventHandler(event, target, callback) end
 
 -- 💻 Client and 🖥 Server Function
@@ -354,7 +369,7 @@ function getCursorPosition() end
 ---@param pathORurl string or URL (http://, https:// or ftp://) of the sound file you want to play.
 ---@param looped? boolean false; whether the sound will be looped. streams can't be looped for obvious reason.
 ---@param throttled? boolean true; the sound will be throttled (i.e. given reduced download bandwidth). To throttle the sound, use true. Sounds will be throttled per default and only for URLs.
----@return Sound|false
+---@return Sound
 function playSound(pathORurl, looped, throttled) end
 
 -- Creates a sound element in the GTA world and plays it immediately after creation for the local player. [setElementPosition](lua://setElementPosition) can be used to move the sound element around after it has been created. Remember to use setElementDimension after creating the sound to play it outside of dimension 0.
@@ -368,7 +383,7 @@ function playSound(pathORurl, looped, throttled) end
 ---@param z number
 ---@param looped? boolean whether the sound will be looped.
 ---@param throttled? boolean whether the sound will be throttled (i.e. given reduced download bandwidth).
----@return Sound | false
+---@return Sound
 function playSound3D(pathORurl, x, y, z, looped, throttled) end
 
 -- Sets a custom sound max distance at which the sound stops.
@@ -376,6 +391,57 @@ function playSound3D(pathORurl, x, y, z, looped, throttled) end
 ---@param distance integer the default value for this is 20
 ---@return boolean success
 function setSoundMaxDistance(sound, distance) end
+
+-- 💻 Client Function
+---
+-- This function is used to change the volume level of the specified sound element. Use a player element to control a players voice with this function.
+---
+---@param speaker Sound | Player
+---@param volume number 0.0-2.0 (1.0 is the base volume)
+---@return boolean success
+function setSoundVolume(speaker, volume) end
+
+---@alias sound_effects
+---| "gargle" 
+---| "compressor" quieter signals gets louder and louder ones gets quieter.
+---| "echo"
+---| "i3dl2reverb"
+---| "distortion" adds more harmonics to the sound.
+---| "chorus"
+---| "parameq" make a specific freq. range louder or quieter.
+---| "reverb"
+---| "flanger"
+
+-- 💻 Client Function
+---
+-- Used to enable or disable specific sound effects. Use a player element to control a players voice with this function.
+---
+---@param speaker Sound | Player
+---@param fxname sound_effects
+---@param enabled boolean
+---@return boolean success
+function setSoundEffectEnabled(speaker, fxname, enabled) end
+
+-- 💻 Client Function
+---
+-- This function sets the parameter of a sound effect.
+---
+-- **_NOTE:_** Using this function on a player voice sound element is not supported at this time.
+---@param speaker Sound
+---@param fxname sound_effects
+---@param fxparam string
+---@param value number | boolean
+---@return boolean success
+function setSoundEffectParameter(speaker, fxname, fxparam, value) end
+
+---@alias parameq_params
+---| "center" 0; 80...16000; the center frequency.
+---| "bandwidth" 12; 1...36; how wide the band will affect frequencies around the center.
+---| "gain" 0; -15...15; turn down or up the volume of the frequencies affected.
+
+---@param fxname "parameq"
+---@param fxparam parameq_params
+function setSoundEffectParameter(speaker, fxname, fxparam, value) end
 
 ---@class Ped : Element
 
@@ -515,9 +581,22 @@ function addCommandHandler(name, handler, restricted, caseSensitive) end
 -- 💻 Client and 🖥 Server Function
 ---
 -- Allows you to retrieve the position coordinates of an element.
----@param element Element
+---@param element Player | Vehicle | Object | Sound
 ---@return number x, number y, number z
 function getElementPosition(element) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function sets the position of an element to the specified coordinates.
+---
+-- **_WARNING:_** Do not use this function to spawn a player. It will cause problems with other functions like [warpPedIntoVehicle](lua://warpPedIntoVehicle). Use [spawnPlayer](lua://spawnPlayer) instead.
+---@param element Player | Vehicle | Object | Sound
+---@param x number
+---@param y number
+---@param z number
+---@param warp? boolean true; teleports players, resetting any animations they were doing. Setting this to false preserves the current animation.
+---@return boolean success
+function setElementPosition(element, x, y, z, warp) end
 
 -- 💻 Client and 🖥 Server Function
 ---
@@ -629,6 +708,29 @@ function createVehicle(model, x, y, z, rx, ry, rz, numberplate, variant1, varian
 ---@return boolean success
 function warpPedIntoVehicle(ped, vehicle, seat) end
 
+---@alias vehicle_doors
+---| 0 Hood
+---| 1 Trunk
+---| 2 Front-Left
+---| 3 Front-Right
+---| 4 Rear-Left
+---| 5 Rear-Right
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function tells you how open a door is (the 'open ratio'). Doors include boots/trunks and bonnets on vehicles that have them.
+---@param vehicle Vehicle
+---@param door vehicle_doors
+---@return number ratio a number between 0 and 1 that indicates how open the door is. 0 is closed, and 1 is fully open.
+function getVehicleDoorOpenRatio(vehicle, door) end
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function gets the vehicle that the ped is currently in or is trying to enter, if any.
+---@param ped Ped
+---@return Vehicle | false
+function getPedOccupiedVehicle(ped) end
+
 ---@class Team : Element
 
 -- 🖥 Server Function
@@ -714,6 +816,10 @@ function setTime(hour, minute) end
 ---@return Element[] # Returns a table containing all the elements of the specified type. Returns an empty table if there are no elements of the specified type. Returns false if the string specified is invalid (or not a string).
 function getElementsByType(type, start_at, streamed_in) end
 
+---@param type "player"
+---@return Player[]
+function getElementsByType(type) end
+
 ---@class Account
 
 -- 🖥 Server Function
@@ -797,3 +903,17 @@ function getPlayerMoney(player) end
 ---@param sync? boolean true; whether or not the data will be synchronized with the clients(server-side variation) or server(client-side variation)
 ---@return boolean success
 function setElementData(element, key, value, sync) end
+
+
+-- 💻 Client and 🖥 Server Function
+---
+-- This function destroys an element and all elements within it in the hierarchy (its children, the children of those children etc). Player elements cannot be destroyed using this function. A player can only be removed from the hierarchy when they quit or are kicked. The root element also cannot be destroyed, however, passing the root as an argument will wipe all elements from the server, except for the players and clients, which will become direct descendants of the root node, and other elements that cannot be destroyed, such as resource root elements.
+---
+-- **_BUG:_** There is bug when you try to destroy webbrowser that returned from guiGetBrowser so instead of that destroy the gui-element one that returned from guiCreateBrowser otherwise the game will be crushed (By Master_MTA).
+---
+-- **_NOTE:_** As element ids are eventually recycled, always make sure you nil variables containing the element after calling this function.
+---
+-- **_REMARKS:_** If a streamed-in element is destroyed then it is NOT streamed out, i.e. the onClientElementStreamOut client-side event is NOT triggered. Thus it is wrong to assume a clean stream-in and stream-out sequence on the client-side. Additionally to onClientElementStreamOut use a onClientElementDestroy event handler to detect the destruction of streamed-in elements.
+---@param element Element
+---@return boolean success Returns true if the element was destroyed successfully, false if either the element passed to it was invalid or it could not be destroyed for some other reason (for example, clientside destroyElement can't destroy serverside elements).
+function destroyElement(element) end

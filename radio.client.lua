@@ -2,21 +2,24 @@ local RADIOS = {}
 
 addEvent("radio-sync", true)
 addEventHandler("radio-sync", resourceRoot, function(target, index, uptime)
+
+	local attached_sound = get_attached_3d_sound(target)
+
 	deattach_3d_sound(target)
-	if index == 0 then
-		return
-	end
+	if index == 0 then return end
 
 	local station = RADIO_STATIONS[index]
 
 	requires(station, space(station.name, station.infos), function()
-		local sound = create_3d_sound(station.source, true)
-		local inside = getPedOccupiedVehicle(getLocalPlayer()) == target
+		local sound = CREATE_3D_SOUND(station.source, true)
+		local inside = getPedOccupiedVehicle(localPlayer) == target
 
 		if not inside then
 			apply_sound_ambience_fx(sound)
 		end
+
 		setElementData(sound, "station-name", station.name)
+		setElementData(sound, "station-index", index)
 
 		-- disabled as sound3d takes care of this for realistic effects
 		setSoundPosition(sound, uptime % getSoundLength(sound))
@@ -123,4 +126,3 @@ addEventHandler("onClientVehicleStartExit", root, function(player, seat)
 		end
 	end
 end)
-

@@ -90,22 +90,16 @@ local function drawWorld()
 			local x, y, z = getElementPosition(player)
 			local sx, sy, distance = getScreenFromWorldPosition(x, y, z - 1)
 
-			DEBUG["sx"] = sx
-			DEBUG["distance"] = distance
-
 			if sx and distance < 100 then
 				local name = getPlayerName(player)
 				local w, h = dxGetTextSize(name, 0, 1, FONTS.SignPainterMedium)
+
+				-- stylua: ignore
 				dxDrawBorderedText(
-					1,
-					name,
-					sx - 5 - w / 2,
-					sy,
-					0,
-					0,
-					tocolor(255, 255, 255, 100),
-					1,
-					FONTS.SignPainterMedium
+					1, name, -- outline and text
+					sx - 5 - w / 2, sy, 0, 0, -- x, y, w, h
+					tocolor(255, 255, 255, 100), -- color
+					1, FONTS.SignPainterMedium -- scale and font
 				)
 			end
 		end
@@ -133,16 +127,13 @@ local function everyFrame()
 		local ammoLeftText = tostring(ammoLeft)
 
 		local ammoLeftWidth, ammoLeftHeight = dxGetTextSize(ammoLeftText, 0, 1, "pricedown")
+		-- stylua: ignore
 		dxDrawBorderedText(
-			1,
-			ammoLeftText,
-			SX - 64 - ammoLeftWidth,
-			moneyHeight * 2 - 5,
-			0,
-			0,
-			COLORS.gray,
-			1,
-			"pricedown"
+			1, ammoLeftText, -- outline and text
+			SX - 64 - ammoLeftWidth, -- x
+			moneyHeight * 2 - 5, -- y
+			0, 0, COLORS.gray, 1, -- width, height, color, scale
+			"pricedown" -- font
 		)
 
 		local ammoInClipText = tostring(ammoInClip)

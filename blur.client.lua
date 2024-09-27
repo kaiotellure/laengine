@@ -6,7 +6,9 @@ local screenSource, renderTarget
 ---@field contrast (Shader|false)
 local shaders = {}
 
-function DRAW_FULL_SCREEN_BLUR()
+-- will draw a contrast and grayscale then possibly a blur effect on screen, sections not supported yet.
+---@param blur? boolean blur can decrease performance on gpu-less computers
+function DRAW_FULL_SCREEN_FX(blur)
 	if screenSource and renderTarget then
 		dxUpdateScreenSource(screenSource)
 
@@ -18,7 +20,7 @@ function DRAW_FULL_SCREEN_BLUR()
 			dxSetShaderValue(shaders.contrast, "Texture0", screenSource)
 			dxDrawImage(0, 0, SX, SY, shaders.contrast)
 
-			if shaders.blur then
+			if blur and shaders.blur then
 				dxSetShaderValue(shaders.blur, "TexelSize", 1 / SX, 1 / SY)
 				dxSetShaderValue(shaders.blur, "Texture0", renderTarget)
 				dxDrawImage(0, 0, SX, SY, shaders.blur)
@@ -33,17 +35,17 @@ function DRAW_FULL_SCREEN_BLUR()
 end
 
 addEventHandler("onClientResourceStart", root, function()
-	local newScreenSource = dxCreateScreenSource(SX * 0.5, SY * 0.5)
+	local newScreenSource = dxCreateScreenSource(SX * 1, SY * 1)
 	assert(newScreenSource, "screen source could not be created.")
 
 	local newRenderTarget = dxCreateRenderTarget(SX, SY, true)
 	assert(newRenderTarget, "render target could not be created.")
 
 	for _, name in ipairs({ "blur", "contrast" }) do
-		shaders[name] = dxCreateShader("assets/shaders/" .. name .. ".fx")
-		if shaders[name] == false then
-			print("could not create shader:" .. name)
-		end
+		local newShader = dxCreateShader("assets/shaders/" .. name .. ".fx")
+		assert(newShader, name.." shader could not be created.")
+
+		shaders[name] = newShader
 	end
 
 	screenSource, renderTarget = newScreenSource, newRenderTarget

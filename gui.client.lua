@@ -33,7 +33,7 @@ function WHEEL_SELECTOR(items, radius, on_selection, getCurrentName)
 
 	local function render()
 		local render_start = getTickCount()
-		DRAW_FULL_SCREEN_BLUR()
+		DRAW_FULL_SCREEN_FX(false)
 
 		-- this shadow helps in the contrast of the bg and the radio controls
 		dxDrawImage(0, 0, SX, SY, "assets/center_shadow.png")
