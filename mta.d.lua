@@ -24,6 +24,9 @@ source = {}
 ---@type Element the element this listener is attached to.
 this = {}
 
+---@type Player can also be the console.
+client = {}
+
 -- 💻 Client and 🖥 Server Function
 ---
 -- This function allows you to register a custom event. Custom events function exactly like the built-in events. See event system for more information on the event system.

@@ -13,6 +13,8 @@ addEventHandler("onClientResourceStart", root, function()
 	local texture = dxCreateTexture("assets/onefourthcrosshair.png")
 	local shader = dxCreateShader(shader)
 
+	assert(shader, "could not create shader.")
+
 	dxSetShaderValue(shader, "gTexture", texture)
 	engineApplyShaderToWorldTexture(shader, "sitem16")
 end)

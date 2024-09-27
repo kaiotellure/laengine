@@ -3,8 +3,8 @@
 	<min_mta_version client="1.3.0-9.04431" />
 
 	<script src="/**/*.shared.lua" type="shared" cache="false"/>
-	<script src="/**/*.server.lua" type="server"/>
 	<script src="/**/*.client.lua" type="client" cache="false"/>
+	<script src="/**/*.server.lua" type="server"/>
 
 	<file src="/**/*.png" />
 	<file src="/**/*.jpeg" />

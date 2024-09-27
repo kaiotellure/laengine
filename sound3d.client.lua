@@ -75,10 +75,12 @@ addEventHandler("onClientPreRender", root, function()
 
 			local open_ratio = 0
 
+			-- reduce the open ratio of the driver and the front passager
 			for i = 2, 3 do
 				open_ratio = open_ratio + getVehicleDoorOpenRatio(target, i)
 			end
 
+			-- normalize
 			open_ratio = open_ratio / 2
 
 			local offset = (open_ratio - 0.5) * 1.30

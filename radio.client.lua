@@ -1,10 +1,16 @@
-local RADIOS = {}
-
 addEvent("radio-sync", true)
 addEventHandler("radio-sync", resourceRoot, function(target, index, uptime)
+	---@cast target WorldElement
+	---@cast index integer
+	---@cast uptime number
 
-	-- local attached_sound = get_attached_3d_sound(target)
+	local currentSound = GET_ATTACHED_3D_SOUND(target)
+	if currentSound and index == getElementData(currentSound, "station-index") then
+		return -- if this sound is changing to the same station, do nothing.
+	end
 
+	-- destroy current sound attached to this target
+	-- if we are turning off the radio (0), stop here.
 	DEATTACH_3D_SOUND(target)
 	if index == 0 then return end
 
@@ -19,7 +25,7 @@ addEventHandler("radio-sync", resourceRoot, function(target, index, uptime)
 		end
 
 		setElementData(sound, "station-name", station.name)
-		-- setElementData(sound, "station-index", index)
+		setElementData(sound, "station-index", index)
 
 		setSoundPosition(sound, uptime % getSoundLength(sound))
 		ATTACH_3D_SOUND(sound, target)
