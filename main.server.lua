@@ -25,18 +25,19 @@ end
 
 local function main()
 	setTime(0, 0)
+
+	---@type Player[]
 	local players = getElementsByType("player")
 
 	for i = 1, #players do
 		spawn(players[i])
 	end
 
-	addEventHandler("onPlayerWasted", root, function() spawn(source) end)
+	addEventHandler("onPlayerWasted", root, function()
+		spawn(source --[[@as Player]])
+	end)
 
 	addEventHandler("onPlayerLogin", root, function(_, account)
-		assert(account, "no player account")
-		---@cast account Account
-
 		local player = source --[[@as Player]]
 
 		local savedMoney = getAccountData(account, "engine.money")
@@ -48,10 +49,10 @@ local function main()
 		setElementData(player, "id", id)
 		spawn(player)
 	end)
-	
+
 	addEventHandler("onPlayerQuit", root, function()
 		local player = source --[[@as Player]]
-		
+
 		local account = getPlayerAccount(player)
 		assert(account, "no player account")
 

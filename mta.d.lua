@@ -1,8 +1,9 @@
 ---@meta
 
 ---@class Element
+---@class RootElement : Element
 
----@type Element the root element
+---@type RootElement the root element
 root = {}
 
 ---@type Element the root element for the current resource
@@ -31,20 +32,134 @@ this = {}
 ---| "onResourceStart" # triggers when the resource is turned on the server side
 ---| "onResourceStop" # triggers when the resource is turned off server side
 
+-- 💻 Client and 🖥 Server Function
+---
 ---@param eventName (ClientEvents | ServerEvents | string)
----@param target Element # the element the event will be listening on
+---@param target Element the element the event will be listening on.
 ---@param callback function
----@param propagate? boolean # can this handler be trigger by others elements down or up the tree, or only by the specified target. default: true
----@param priority? ("high" | "normal" | "low" | string) # the lower priority, the last it will run. default: normal
----@return boolean # true if was attached successfully. false if event could not be found or any parameters were invalid.
+---@param propagate? boolean true; can this handler be trigger by others elements down or up the tree, or only by the specified target.
+---@param priority? "high" | "normal" | "low" | string normal; the lower priority, the last it will run.
+---@return boolean success false if event could not be found or any parameters were invalid.
 function addEventHandler(eventName, target, callback, propagate, priority) end
 
--- >> Shared Function
+-- 🖥 Server Event
+---
+-- **_CANCELLING:_** the player will not be logged in.
+---
+-- **_SOURCE:_** The source of this event is the player element that just logged in.
+---@param event "onPlayerLogin"
+---@param target RootElement | Player
+---@param callback fun(previous: Account, current: Account)
+function addEventHandler(event, target, callback) end
+
+---@alias quit_types
+---| "Unknown"
+---| "Quit"
+---| "Kicked"
+---| "Banned"
+---| "Bad Connection"
+---| "Timed out"
+
+-- 🖥 Server Event
+---
+-- **_CANCELLING:_** This event cannot be cancelled.
+---
+---**_SOURCE:_** The source of this event is the player that left the server.
+---@param event "onPlayerQuit"
+---@param target RootElement | Player
+---@param callback fun(type: quit_types, reason: string | false, responsable: Player | Console)
+function addEventHandler(event, target, callback) end
+
+---@class Object : Element
+
+---@alias body_parts
+---| 3 Torso
+---| 4 Ass
+---| 5 Left Arm
+---| 6 Right Arm
+---| 7 Left Leg
+---| 8 Right Leg
+---| 9 Head
+
+---@alias damage_types
+---| 19 Rocket
+---| 37 Burnt, used by a damage by fire, even when the fire is created by a rocket explosion or a molotov.
+---| 49 Rammed
+---| 50 Ranover, also called when damaged because of helicopter blades.
+---| 51 Explosion, may sometimes also be used at an indirect damage through an exploding rocket.
+---| 52 Driveby, NOT used for a driveby kill with e.g. the 'realdriveby' resource.
+---| 53 Drowned
+---| 54 Fall
+---| 55 Unknown
+---| 56 Melee, seems to be never called (?); for an actual melee damage, the fist weapon ID (0) is used.
+---| 57 Weapon, seems to be never called (?)
+---| 59 Tank Grenade
+---| 63 Blown, when dying in a vehicle explosion.
+
+---@alias weapons
+---| 0 Fist
+---| 1 Brassnuckle
+---| 2 Golfclub
+---| 3 Nightstick
+---| 4 Knife
+---| 5 Bat
+---| 6 Shovel
+---| 7 Poolstick
+---| 8 Katana
+---| 9 Chainsaw
+---| 22 Colt 45
+---| 23 Silenced
+---| 24 Deagle
+---| 25 Shotgun
+---| 26 Sawed-off
+---| 27 Combat Shotgun
+---| 28 Uzi
+---| 29 MP5
+---| 32 Tec-9
+---| 30 AK
+---| 31 M4
+---| 33 Rifle
+---| 34 Sniper
+---| 35 Rocket Launcher
+---| 36 Rocket Launcher HS
+---| 37 Flamethrower
+---| 38 Minigun
+---| 16 Grenade
+---| 17 Teargas
+---| 18 Molotov
+---| 39 Satchel
+---| 41 Spraycan
+---| 42 Fire Extinguisher
+---| 43 Camera
+---| 10 Thin Dildo
+---| 11 Thick Dildo
+---| 12 Vibrator
+---| 14 Flower
+---| 15 Cane
+---| 44 Nightvision
+---| 45 Infrared
+---| 46 Parachute
+---| 40 Satchel Detonator (Bomb)
+
+-- 🖥 Server Event
+---
+-- This event is triggered when a player is killed or dies.
+---
+-- **_CANCELLING:_** non cancellable; no explicit state by the wiki; untested.
+---
+---**_SOURCE:_** The source of this event is the player that died or got killed.
+---@param event "onPlayerWasted"
+---@param target RootElement | Player
+---@param callback fun(ammo: integer, killer: Player | Ped | Vehicle | Object | false, weapon: weapons | damage_types, bodypart: body_parts, stealth: boolean, animGroup: integer, animID: integer)
+function addEventHandler(event, target, callback) end
+
+-- 💻 Client and 🖥 Server Function
+---
 -- This functions removes a handler function from an event, so that the function is not called anymore when the event is triggered. See event system for more information on how the event system works.
----@param eventName ClientEvents|ServerEvents|string
+---@param eventName ClientEvents | ServerEvents | string
 ---@param target Element
 ---@param callback function
----@return boolean # Returns true if the event handler was removed successfully. Returns false if the specified event handler could not be found or invalid parameters were passed.
+---@return boolean success false if the specified event handler could not be found or invalid parameters were passed.
 function removeEventHandler(eventName, target, callback) end
 
 ---@class Material
@@ -633,7 +748,7 @@ function getAccountID(account) end
 ---
 -- This function returns the specified player's account object.
 ---@param player Player
----@return Account | false account # false if the player passed to the function is invalid.
+---@return Account | false account
 function getPlayerAccount(player) end
 
 -- 🖥 Server Function
