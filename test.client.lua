@@ -43,30 +43,44 @@ addEventHandler("onClientRender", root, function()
    local parts = 8
    local sides_amp = .25
 
-   local part_width = math.pi * 2 / parts
+   local part_width = PI2 / parts
    DRAW_FULL_SCREEN_FX(false)
 
-   local pad = part_width*.05
+   local pad = part_width*.01
    local bigger = part_width * (1+sides_amp)
    local smaller = part_width * (1-sides_amp)
 
    local offset = bigger/2 + pad
    local ac = 0
 
+	showCursor(true, false)
+	local cx, cy = getCursorPosition()
+	cx, cy = cx * SX, cy * SY
+
+	-- the current mta lua version hasnt deprecated this yet.
+	local angle = (atan2(cx - CX, cy - CY) + offset) % PI2
+	DEBUG["ANGLE"] = angle
+
    for i = 0, parts-1 do
+		local start = ac-- - offset
       local width = i%2 == 0 and bigger or smaller
 
+		local hovered = angle >= start and angle < (start+width)
+		DEBUG[i.."_start"] = start
+		DEBUG[i.."_start+width"] = (start+width)
+		DEBUG[i.."_hovered"] = hovered
+
       DRAW_PART({
-         start = ac + pad - offset,
+         start = start - offset,
          width = width - pad,
-         precision = 32
+         precision = 8
       }, {
          radius = 200, box = 75, border = 4
       }, {
          box_bottom = tocolor(10, 10, 10, 225),
          box_upper = tocolor(5, 5, 5, 225),
-         border_bottom = tocolor(255, 75, 10, 255),
-         border_upper = tocolor(255, 75, 10, 255)
+         border_bottom = hovered and tocolor(0, 75, 255, 255) or tocolor(255*(i/parts), 0, 0, 255),
+         border_upper = tocolor(255*(i/parts), 0, 0, 255)
       })
 
       ac = ac + width

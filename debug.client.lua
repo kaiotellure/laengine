@@ -8,6 +8,6 @@ addEventHandler("onClientRender", root, function()
 		dxDrawText(name..": "..tostring(text), 10, 200 + i*20)
 		i = i+1
 	end
-end)
+end, true, "low")
 
 function d(key, value) DEBUG[key] = value end
