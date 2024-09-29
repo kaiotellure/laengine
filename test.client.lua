@@ -1,10 +1,10 @@
-function DRAW_PART(angles, sizes, colors)
+local function drawWheelSlice(angles, sizes, colors, callbacks)
    local vertices, bvertices = {}, {}
    local step = angles.width / angles.precision
 
    for i = 0, angles.precision do
-      local rx = math.sin(angles.start + step*i)
-      local ry = math.cos(angles.start + step*i)
+      local rx = sin(angles.start + step*i)
+      local ry = cos(angles.start + step*i)
 
       -- box bottom vertices
       table.insert(vertices, {
@@ -35,182 +35,120 @@ function DRAW_PART(angles, sizes, colors)
       })
    end
 
+   -- the current mta lua version hasnt deprecated unpack yet.
    dxDrawPrimitive("trianglestrip", false, unpack(vertices))
    dxDrawPrimitive("trianglestrip", false, unpack(bvertices))
+
+   local ca = angles.start + angles.width / 2
+   local crx, cry = sin(ca), cos(ca)
+
+   callbacks.drawAtCenter(
+      CX + crx * (sizes.radius + sizes.box/2),
+      CY + cry * (sizes.radius + sizes.box/2),
+
+      angles._part_index+1,
+      angles._is_hovering
+   )
 end
 
-addEventHandler("onClientRender", root, function()
-   local parts = 8
-   local sides_amp = .25
-
-   local part_width = PI2 / parts
-   DRAW_FULL_SCREEN_FX(false)
-
-   local pad = part_width*.01
-   local bigger = part_width * (1+sides_amp)
-   local smaller = part_width * (1-sides_amp)
-
-   local offset = bigger/2 + pad
+local function drawWheel(params, callbacks)
    local ac = 0
 
-	showCursor(true, false)
 	local cx, cy = getCursorPosition()
 	cx, cy = cx * SX, cy * SY
 
-	-- the current mta lua version hasnt deprecated this yet.
-	local angle = (atan2(cx - CX, cy - CY) + offset) % PI2
+	-- the current mta lua version hasnt deprecated atan2 yet.
+	local angle = (atan2(cx - CX, cy - CY) + params.offset) % PI2
 	DEBUG["ANGLE"] = angle
 
-   for i = 0, parts-1 do
-		local start = ac-- - offset
-      local width = i%2 == 0 and bigger or smaller
+   for i = 0, params.parts-1 do
+		local start = ac -- - offset
+      local width = i%2 == 0 and params.bigger or params.smaller
 
 		local hovered = angle >= start and angle < (start+width)
-		DEBUG[i.."_start"] = start
-		DEBUG[i.."_start+width"] = (start+width)
-		DEBUG[i.."_hovered"] = hovered
+      local colors = callbacks.getColors(i+1, hovered)
 
-      DRAW_PART({
-         start = start - offset,
-         width = width - pad,
-         precision = 8
+      drawWheelSlice({
+         start = start - params.offset,
+         width = width - params.pad,
+         precision = params.precision,
+
+         _part_index = i,
+         _is_hovering = hovered
       }, {
-         radius = 200, box = 75, border = 4
+         radius = 200, box = 75,
+         border = hovered and 4 or 3
       }, {
-         box_bottom = tocolor(10, 10, 10, 225),
-         box_upper = tocolor(5, 5, 5, 225),
-         border_bottom = hovered and tocolor(0, 75, 255, 255) or tocolor(255*(i/parts), 0, 0, 255),
-         border_upper = tocolor(255*(i/parts), 0, 0, 255)
-      })
+         box_bottom = tocolor(10, 10, 10, 100),
+         box_upper = colors.box_upper,
+         border_bottom = colors.border,
+         border_upper = colors.border
+      }, callbacks)
 
       ac = ac + width
    end
-end)
-
-function AWHEEL_SELECTOR(items, radius, on_selection, getCurrentName)
-	-- angle between each item; the spacing size.
-	local pad_angle = PI2 / #items
-	local selected_item_index = 0
-
-	-- center circle
-	local cc_size = radius * 0.5
-	local cc_x, cc_y = CX - cc_size / 2, CY - cc_size / 2
-
-	local last_hovered = 0
-	local last_hovered_name = "NENHUM"
-
-	local function render()
-		local render_start = getTickCount()
-		DRAW_FULL_SCREEN_FX(false)
-
-		-- this shadow helps in the contrast of the bg and the radio controls
-		dxDrawImage(0, 0, SX, SY, "assets/center_shadow.png")
-
-		-- stylua: ignore
-		dxDrawImage(
-			cc_x, cc_y, cc_size, cc_size,
-			"assets/center_circle.png", 0, 0, 0,
-			selected_item_index == 0 and COLORS.red or nil
-		)
-
-		local current = space(ICONS.Radio, getCurrentName())
-		local cw, ch = dxGetTextSize(current, 0, 1, FONTS.Switzer)
-		dxDrawBorderedText(1, current, CX - cw / 2, ch, cw, ch, COLORS.gray, 1, FONTS.Switzer)
-
-		local sw, sh = dxGetTextSize(last_hovered_name, 0, 1, FONTS.SignPainterMedium)
-		-- stylua: ignore
-		dxDrawBorderedText(
-			1, last_hovered_name, -- outline, text
-			CX - sw / 2, sh + ch - 10, sw, sh, -- x, y, width, height
-			COLORS.White, 1, -- color, scale
-			FONTS.SignPainterMedium -- font
-		)
-
-		-- getCursorPosition returns a relative 0-1 float
-		-- so we convert into an absolute resolution
-		local cursorx, cursory = getCursorPosition()
-		cursorx, cursory = cursorx * SX, cursory * SY
-
-		local x_normal, y_normal = cursorx - CX, cursory - CY
-		local distance_from_center = sqrt(x_normal ^ 2 + y_normal ^ 2)
-
-		if distance_from_center < cc_size / 2 then
-			selected_item_index = 0
-			last_hovered_name = "NENHUM"
-		else
-			-- angle of the mouse relative to the center
-			-- we also add another pi, to offset negative values, so it's now
-			-- 0...6.28 instead of -3.14...3.14, to easy out further indexing on items
-			-- as pad_angle also uses 2pi
-			local mouse_angle = atan2(y_normal, x_normal) + PI
-
-			-- rotate mouse by half item padding angle, so that the activation area
-			-- is around and not after the item angle
-			mouse_angle = rot(mouse_angle, pad_angle / 2, PI2)
-			selected_item_index = ceil(mouse_angle / pad_angle)
-		end
-
-		for i, item in ipairs(items) do
-			-- (i-1) so there is no spacing on the first item
-			-- - math.pi to match the mouse_angle offset above
-			local rotation_angle = pad_angle * (i - 1) - PI
-
-			-- x and y range from -1...1, so we amplify its radius so that
-			-- they are further away and not glued together
-			-- swapped to go around clock wise
-			local x, y = cos(rotation_angle), sin(rotation_angle)
-			x, y = x * radius, y * radius
-
-			local w = cc_size -- item.width * ratio
-			local h = cc_size -- item.height * ratio
-
-			if i == selected_item_index then
-				if i ~= last_hovered then
-					playSound("assets/soundfx/hover.mp3")
-				end
-
-				last_hovered = i
-				last_hovered_name = item.name
-
-				local padding = 16 * RX
-				-- stylua: ignore
-				dxDrawImage(
-					CX + x - w / 2 - padding, -- x
-					CY + y - h / 2 - padding, -- y
-					w + padding * 2, h + padding * 2, -- width, height
-					"assets/gradient_square.png", -- path
-					0, 0, 0, COLORS.gray -- rotation, pivotx, pivoty, color
-				)
-			end
-
-			dxDrawImage(CX + x - w / 2, CY + y - h / 2, w, h, item.src)
-		end
-
-		DEBUG["radio wheel render time"] = (getTickCount() - render_start) / 1000
-	end
-
-	local function startRendering()
-		addEventHandler("onClientRender", root, render, true, "low-6.0")
-	end
-
-	local function stopRendering()
-		removeEventHandler("onClientRender", root, render)
-		showCursor(false)
-	end
-
-	return {
-		startRendering = startRendering,
-		stopRendering = stopRendering,
-
-		show = function()
-			startRendering()
-			setCursorPosition(CX, CY)
-			showCursor(true, false)
-		end,
-		hide = function()
-			stopRendering()
-			playSound("assets/soundfx/select.mp3")
-			on_selection(selected_item_index)
-		end,
-	}
 end
+
+local function createWheel(config, callbacks)
+	config.part_width = PI2 / config.parts
+   config.pad = config.part_width * config.padding
+
+   config.bigger = config.part_width * (1 + config.sides_amplification)
+   config.smaller = config.part_width * (1 - config.sides_amplification)
+
+   config.offset = config.bigger/2 --+ config.pad
+	return function()
+		drawWheel(config, callbacks)
+	end
+end
+
+addEventHandler("onClientResourceStart", resourceRoot, function()
+   local weapons = {}
+   local ratio = .35
+
+   table.insert(weapons, WEAPONS[31])
+   table.insert(weapons, WEAPONS[30])
+   table.insert(weapons, WEAPONS[22])
+   table.insert(weapons, WEAPONS[23])
+
+   local lastHovered = 1
+   local selected = 1
+
+   local purple = tocolor(200,0,100, 255)
+   local weak_purple = tocolor(200,0,100, 100)
+   local black = tocolor(0, 0, 0, 200)
+   local weak_black = tocolor(10, 10, 10, 100)
+
+	local wheel = createWheel({
+		parts = 8, sides_amplification = 0.20,
+		padding = 0.01, precision = 12
+	}, {
+      getColors = function(part, hovering)
+         return {
+            border = selected == part and purple or black,
+            box_upper = hovering and weak_purple or weak_black
+         }
+      end,
+      drawAtCenter = function(x, y, part, hovering)
+         local weapon = weapons[part]
+         if weapon then
+
+            if hovering and lastHovered ~= part then
+               playSound("assets/soundfx/select.mp3")
+               lastHovered = part
+            end
+
+            local w, h = GET_IMAGE_SIZE(weapon.icon)
+            w, h = w*ratio, h*ratio
+            dxDrawImage(x-w/2, y-h/2, w, h, weapon.icon)
+         end
+      end
+   })
+
+	addEventHandler("onClientRender", root, function()
+		showCursor(true, false)
+		DRAW_FULL_SCREEN_FX(true)
+	
+		wheel()
+	end)
+end)

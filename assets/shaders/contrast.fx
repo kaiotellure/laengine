@@ -19,11 +19,11 @@ float4 PS_Main(PSInput PS) : SV_Target
 {
     float4 color = tex2D(Sampler0, PS.TexCoord);
 
-	color.rgb = (color.rgb - 0.5) * 1.5 + 0.5;
-	color.rgb = saturate(color.rgb + 0.1);
-	color.rgb *= float3(.9, .8, 1);
+	//color.rgb = (color.rgb - 0.5) * 1.5 + 0.5;
+	//color.rgb = saturate(color.rgb + 0.1);
+	//color.rgb *= float3(.9, .8, 1);
 
-    color.rgb = dot(color.rgb, float3(.2,.2,.2));
+    color.rgb = dot(color.rgb, float3(.7,.7,.7));
 
     return color;
 }
