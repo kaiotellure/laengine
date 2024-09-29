@@ -21,24 +21,46 @@ local function path(name)
 end
 
 WEAPONS = {
+	[0] = {
+		name = "Desarmado", icon = path("fist.png")
+	},
+	[1] = {
+		name = "Soco Inglês", icon = path("knuckle.png")
+	},
+	[4] = {
+		name = "Faca", icon = path("knife.png")
+	},
+	[27] = {
+		name = "Escopeta de Combate", icon = path("combat_shotgun.png")
+	},
+	[29] = {
+		name = "MP5", icon = path("mp5.png")
+	},
 	[30] = {
-		icon = path("ak.png"), fire = path("ak.mp3"),
-		reload = path("ak-reload.mp3")
+		name = "AK-47", icon = path("ak.png"),
+		fire = path("ak.mp3"), reload = path("ak-reload.mp3")
 	},
 	[31] = {
-		icon = path("m4.png"), fire = path("m4.mp3"),
-		reload = path("m4-reload.mp3")
+		name = "M4", icon = path("m4.png"),
+		fire = path("m4.mp3"), reload = path("m4-reload.mp3")
+	},
+	[35] = {
+		name = "Lança Foguetes", icon = path("rocket_launcher.png")
 	},
 	[22] = {
-		icon = path("pistol.png"), fire = path("pistol.mp3"),
+		name = "Glock", icon = path("pistol.png"), fire = path("pistol.mp3"),
 		reload = path("pistol-reload.mp3")
 	},
 	[23] = {
-		icon = path("pistol-silenced.png"), fire = path("pistol-silenced.mp3"),
+		name = "Glock Silenciada", icon = path("pistol-silenced.png"),
+		fire = path("pistol-silenced.mp3"),
 		reload = path("pistol-silenced-reload.mp3")
 	},
 	[34] = {
-		icon = path("sniper.png")
+		name = "Fuzil de Precisão", icon = path("sniper.png")
+	},
+	[46] = {
+		name = "Paraquedas", icon = path("parachute.png")
 	}
 }
 

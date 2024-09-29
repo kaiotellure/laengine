@@ -1139,7 +1139,7 @@ function destroyElement(element) end
 ---@param callback fun(key: keys_and_controls, state: "up" | "down", ...) | string
 ---@param ... any
 ---@return boolean success
----@overload fun(player: Player, key: keys_and_controls, state: "up" | "down" | "both", callback: fun(key: keys_and_controls, state: "up" | "down", ...) | string, ...: any): boolean
+----@overload fun(player: Player, key: keys_and_controls, state: "up" | "down" | "both", callback: fun(key: keys_and_controls, state: "up" | "down", ...) | string, ...: any): boolean
 function bindKey(key, state, callback, ...) end
 
 -- 💻 Client and 🖥 Server Function
@@ -1155,7 +1155,7 @@ function bindKey(key, state, callback, ...) end
 ---@param state "up" | "down" | "both"
 ---@param callback fun(key: keys_and_controls, state: "up" | "down", ...) | string
 ---@return boolean success
----@overload fun(player: Player, key: keys_and_controls, state: "up" | "down" | "both", callback: fun(key: keys_and_controls, state: "up" | "down", ...) | string): boolean
----@overload fun(player: Player, key: keys_and_controls): boolean
----@overload fun(key: keys_and_controls): boolean
+----@overload fun(player: Player, key: keys_and_controls, state: "up" | "down" | "both", callback: fun(key: keys_and_controls, state: "up" | "down", ...) | string): boolean
+----@overload fun(player: Player, key: keys_and_controls): boolean
+----@overload fun(key: keys_and_controls): boolean
 function unbindKey(key, state, callback) end

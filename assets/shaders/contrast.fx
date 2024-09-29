@@ -23,7 +23,7 @@ float4 PS_Main(PSInput PS) : SV_Target
 	//color.rgb = saturate(color.rgb + 0.1);
 	//color.rgb *= float3(.9, .8, 1);
 
-    color.rgb = dot(color.rgb, float3(.7,.7,.7));
+    color.rgb = dot(color.rgb, float3(.4,.4,.4));
 
     return color;
 }
