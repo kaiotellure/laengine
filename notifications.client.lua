@@ -106,6 +106,10 @@ local function drawWorld()
 	end
 end
 
+local function isBulletless(id)
+	if id <= 15 or id >= 40 then return true end
+end
+
 local function everyFrame()
 	local render_start = getTickCount()
 	drawWorld()
@@ -119,7 +123,7 @@ local function everyFrame()
 	local weaponId = getPedWeapon(lp)
 	local currentVehicle = getPedOccupiedVehicle(lp)
 
-	if weaponId ~= 0 and not isElementInWater(lp) or isPedDoingGangDriveby(lp) then
+	if not isBulletless(weaponId) and not isElementInWater(lp) or isPedDoingGangDriveby(lp) then
 		local ammoInClip = getPedAmmoInClip(lp)
 		local totalAmmo = getPedTotalAmmo(lp)
 
@@ -139,15 +143,12 @@ local function everyFrame()
 		local ammoInClipText = tostring(ammoInClip)
 		local ammoInClipWidth, ammoInClipHeight = dxGetTextSize(ammoInClipText, 0, 1, "pricedown")
 
+		-- stylua: ignore
 		dxDrawBorderedText(
-			1,
-			ammoInClipText,
+			1, ammoInClipText,
 			SX - 64 - ammoLeftWidth - ammoInClipWidth - 10,
 			moneyHeight * 2 - 5,
-			0,
-			0,
-			COLORS.white,
-			1,
+			0, 0, COLORS.white, 1,
 			"pricedown"
 		)
 

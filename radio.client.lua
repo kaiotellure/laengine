@@ -52,30 +52,17 @@ local function bindRadioControls(vehicle, getCurrentName)
 	bindKey("radio_previous", "down", wheel.show)
 	bindKey("radio_previous", "up", wheel.hide)
 
-	local function enteredIntoAnotherVehicle(source, player, clear)
-		if player == localPlayer and source ~= vehicle then
-			clear()
-		end
-	end
-
 	local function clear()
 		wheel.stopRendering()
 		unbindKey("radio_previous", "down", wheel.show)
 		unbindKey("radio_previous", "up", wheel.hide)
 
 		removeEventHandler("onClientVehicleExplode", vehicle, clear)
-		removeEventHandler("onClientVehicleEnter", root, enteredIntoAnotherVehicle)
 	end
-
 	addEventHandler("onClientVehicleExplode", vehicle, clear)
-	addEventHandler("onClientVehicleEnter", root, function(player)
-		enteredIntoAnotherVehicle(source, player, clear)
-	end)
 
 	addEventHandler("onClientVehicleStartExit", vehicle, function(player)
-		if player == getLocalPlayer() then
-			clear()
-		end
+		if player == getLocalPlayer() then clear() end
 	end)
 end
 

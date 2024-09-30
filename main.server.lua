@@ -22,7 +22,7 @@ local function spawn(player)
 	fadeCamera(player, true)
 	setCameraTarget(player)
 
-	for _, id in ipairs({1, 4, 23, 30, 27, 29, 34, 35, 16, 42, 14, 46}) do
+	for _, id in ipairs({1, 4, 23, 30, 27, 29, 34, 35, 16, 42, 14, 46, 39}) do
 		giveWeapon(player, id)
 	end
 end

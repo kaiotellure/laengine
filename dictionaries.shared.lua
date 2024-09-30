@@ -30,6 +30,9 @@ WEAPONS = {
 	[4] = {
 		name = "Faca", icon = path("knife.png")
 	},
+	[16] = {
+		name = "Granada", icon = path("grenade.png")
+	},
 	[27] = {
 		name = "Escopeta de Combate", icon = path("combat_shotgun.png")
 	},
@@ -59,8 +62,17 @@ WEAPONS = {
 	[34] = {
 		name = "Fuzil de Precisão", icon = path("sniper.png")
 	},
+	[39] = {
+		name = "Bomba Adesiva", icon = path("stickybomb.png")
+	},
+	[40] = {
+		name = "Detonador", icon = path("detonator.png")
+	},
+	[42] = {
+		name = "Extintor de Incêndio", icon = path("fireextinguisher.png")
+	},
 	[46] = {
-		name = "Paraquedas", icon = path("parachute.png")
+		name = "Para-quedas", icon = path("parachute.png")
 	}
 }
 

@@ -133,6 +133,7 @@ local function newGroup(...)
 
    group.update = function(self)
       self.list = mergeSlots(unpack(slots))
+      if self.scroll > #self.list then self.scroll = #self.list end
    end
 
    return group
@@ -146,9 +147,13 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
 
    local groups = {
       newGroup(0, 1, 9, 10),
-      newGroup(4, 3),
-      newGroup(5, 6, 7),
-      newGroup(11)
+      newGroup(4),
+      newGroup(6, 7),
+      newGroup(11),
+      newGroup(2),
+      newGroup(8, 12),
+      newGroup(5),
+      newGroup(3)
    }
 
    local purple = tocolor(200,0,100, 255)
@@ -184,7 +189,7 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
             local icon = infos and infos.icon or 'assets/images.png'
 
             if hovering and lastHovered ~= part then
-               playSound("assets/soundfx/select.mp3")
+               playSound("assets/soundfx/hover.mp3")
                lastHovered = part
             end
 
@@ -229,20 +234,23 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
       end
 
       group.scroll = new
-      if #group.list > 1 then playSound("assets/soundfx/select.mp3") end
+      if #group.list > 1 then playSound("assets/soundfx/hover.mp3") end
    end
 
    local scrolldown = function() scroll(1) end
    local scrollup = function() scroll(-1) end
 
    bindKey("tab", "down", function()
+      if getPedOccupiedVehicle(localPlayer) then return end
+
       for _, group in ipairs(groups) do
          group.update(group)
       end
 
       selected.id = getPedWeapon(localPlayer)
-
       showCursor(true, false)
+
+      setCursorPosition(CX, CY)
       addEventHandler("onClientRender", root, render)
 
       bindKey("mouse_wheel_down", "down", scrolldown)
@@ -269,6 +277,11 @@ addEventHandler("onClientResourceStart", resourceRoot, function()
       local current = getWeaponAtGroup()
       if current then
          setPedWeaponSlot(localPlayer, current.slot)
+
+         if current.id ~= selected.id then
+            playSound("assets/soundfx/select.mp3")
+         end
+
          selected = current
       end
    end)
